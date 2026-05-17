@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Jobs — New2Canada</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <a href="/" class="brand"><span class="dot"></span> New2Canada</a>
+        <nav class="nav-links">
+            <a href="/apartments.html">Apartments</a>
+            <a href="/jobs.html" class="active">Jobs</a>
+            <a href="/banks.html">Banks</a>
+            <a href="/mobile.html">Mobile</a>
+            <a href="/scholarships.html">Scholarships</a>
+            <a href="/history.html">History</a>
+        </nav>
+        <span id="authBox"></span>
+    </header>
+
+    <div id="demoBanner" class="banner" style="display:none;"></div>
+
+    <main>
+        <div class="page-head">
+            <h2>Find a part-time job 💼</h2>
+            <p>Live postings from JobBank.gc.ca — the Government of Canada job board.</p>
+        </div>
+
+        <form class="search-bar" id="searchForm" autocomplete="off">
+            <div class="autocomplete-wrap">
+                <input id="q" type="text" placeholder="Try: cashier, warehouse, retail, server…">
+                <div id="acList" class="autocomplete-list" style="display:none;"></div>
+            </div>
+            <button type="submit">Search</button>
+            <button type="button" class="secondary" id="topBtn">Top picks</button>
+        </form>
+
+        <div class="filter-row" id="filterRow">
+            <label for="provinceFilter">Province</label>
+            <select id="provinceFilter"><option value="">Any province</option></select>
+            <label for="cityFilter">City</label>
+            <select id="cityFilter"><option value="">Any city</option></select>
+            <button type="button" class="clear-btn" id="clearFilters">Clear filters</button>
+        </div>
+
+        <div id="resultCount" class="result-count"></div>
+        <div id="didYouMean"></div>
+        <div id="results" class="result-list"></div>
+    </main>
+
+    <footer>COMP 8547 · Advanced Computing Concepts · University of Windsor</footer>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/app.js"></script>
+    <script>window.PAGE_TYPE='jobs';</script>
+    <script src="/js/pages/search-page.js"></script>
+</body>
+</html>

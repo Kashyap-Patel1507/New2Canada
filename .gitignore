@@ -1,0 +1,18 @@
+# Build output
+target/
+*.class
+
+# Service-account key (keep private!)
+serviceAccountKey.json
+
+# IDE
+.idea/
+*.iml
+.vscode/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

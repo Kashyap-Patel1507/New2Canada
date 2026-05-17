@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>New2Canada — Student Search Engine</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <a href="/" class="brand"><span class="dot"></span> New2Canada</a>
+        <nav class="nav-links">
+            <a href="/apartments.html">Apartments</a>
+            <a href="/jobs.html">Jobs</a>
+            <a href="/banks.html">Banks</a>
+            <a href="/mobile.html">Mobile</a>
+            <a href="/scholarships.html">Scholarships</a>
+            <a href="/history.html">History</a>
+        </nav>
+        <span id="authBox"></span>
+    </header>
+
+    <div id="demoBanner" class="banner" style="display:none;">
+        Running in <b>DEMO mode</b>. Auth & cloud persistence are disabled —
+        add <code>serviceAccountKey.json</code> and your Firebase web config
+        (see <code>README.md</code>) to enable FULL mode.
+    </div>
+
+    <section class="hero">
+        <h1>Land in Canada. Find everything in one search.</h1>
+        <p>Apartments · Part-time jobs · Student bank accounts · Mobile plans · Scholarships —
+           crawled live, ranked, with autocomplete and spell-check that fits the language barrier.</p>
+        <form class="hero-search" id="heroSearch" autocomplete="off">
+            <select id="heroType">
+                <option value="apartments">🏠 Apartments</option>
+                <option value="jobs">💼 Jobs</option>
+                <option value="banks">🏦 Banks</option>
+                <option value="mobile">📱 Mobile</option>
+                <option value="scholarships">🎓 Scholarships</option>
+            </select>
+            <div class="autocomplete-wrap" style="flex:1">
+                <input id="heroQ" type="text" placeholder="Try: 2 bedroom toronto, cashier, student account, unlimited talk…">
+                <div id="heroAc" class="autocomplete-list" style="display:none;"></div>
+            </div>
+            <button type="submit">Search</button>
+        </form>
+        <div class="chips">
+            <a class="chip" href="/apartments.html">2 bedroom Windsor</a>
+            <a class="chip" href="/jobs.html">Part-time student</a>
+            <a class="chip" href="/banks.html">RBC student</a>
+            <a class="chip" href="/mobile.html">Unlimited talk</a>
+            <a class="chip" href="/scholarships.html">Vanier scholarship</a>
+            <a class="chip" href="/scholarships.html?q=international">International student aid</a>
+        </div>
+    </section>
+
+    <section class="stat-strip" id="statStrip">
+        <div class="stat-card"><div class="num" id="statDocs">—</div><div class="label">Documents indexed</div></div>
+        <div class="stat-card"><div class="num" id="statTerms">—</div><div class="label">Trie nodes (autocomplete)</div></div>
+        <div class="stat-card"><div class="num" id="statDict">—</div><div class="label">Dictionary words</div></div>
+        <div class="stat-card"><div class="num" id="statQueries">—</div><div class="label">Searches served</div></div>
+    </section>
+
+    <main>
+        <div class="section-title">Browse by category</div>
+        <div class="cat-grid">
+            <a class="cat-tile" href="/apartments.html">
+                <div class="icon">🏠</div>
+                <h3>Apartments</h3>
+                <p>Live listings from Kijiji across Windsor, Toronto, Mississauga & Brampton.</p>
+            </a>
+            <a class="cat-tile" href="/jobs.html">
+                <div class="icon">💼</div>
+                <h3>Part-time jobs</h3>
+                <p>Real postings from JobBank.gc.ca, the Canadian government job board.</p>
+            </a>
+            <a class="cat-tile" href="/banks.html">
+                <div class="icon">🏦</div>
+                <h3>Student bank accounts</h3>
+                <p>Compare RBC, Scotiabank, CIBC, and friends — pulled live each crawl.</p>
+            </a>
+            <a class="cat-tile" href="/mobile.html">
+                <div class="icon">📱</div>
+                <h3>Mobile / SIM plans</h3>
+                <p>Freedom, Public, Rogers, Bell, Telus, Koodo carrier comparisons.</p>
+            </a>
+            <a class="cat-tile" href="/scholarships.html">
+                <div class="icon">🎓</div>
+                <h3>Scholarships & financial aid</h3>
+                <p>Government of Canada, Universities Canada, and major award articles — aggregated so you don't Google each one.</p>
+            </a>
+        </div>
+
+        <div class="section-title">Smart tools</div>
+        <div class="cat-grid">
+            <a class="cat-tile" href="/autocomplete.html">
+                <div class="icon">⌨️</div>
+                <h3>Autocomplete</h3>
+                <p>Trie + bounded min-heap. O(L) prefix lookup.</p>
+            </a>
+            <a class="cat-tile" href="/spellcheck.html">
+                <div class="icon">✏️</div>
+                <h3>Spell check</h3>
+                <p>Wagner-Fischer edit distance against a live-learned dictionary.</p>
+            </a>
+            <a class="cat-tile" href="/validate.html">
+                <div class="icon">✅</div>
+                <h3>Validate</h3>
+                <p>Canadian postal code, email, phone, SIN — all via pre-compiled regex.</p>
+            </a>
+            <a class="cat-tile" href="/history.html">
+                <div class="icon">📊</div>
+                <h3>Your history</h3>
+                <p>HashMap frequency + LinkedList chronological log. Per-user in Firestore.</p>
+            </a>
+        </div>
+    </main>
+
+    <footer>COMP 8547 · Advanced Computing Concepts · University of Windsor</footer>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/pages/home.js"></script>
+</body>
+</html>
