@@ -60,37 +60,6 @@ Open **http://localhost:8080** in Chrome.
 
 > **Note** — on first launch the page will say "no matches yet" for a few seconds while the live crawler hits Rentals.ca / Indeed / the bank sites and builds the index. Refresh after \~15 seconds.
 
-### 4. (Optional but recommended) Enable FULL mode with Firebase
-
-Until you set up Firebase the app runs in **DEMO mode**: in-memory only, auth disabled, no persistence. To enable Google Sign-In, Firestore caching, and per-user history:
-
-1. Go to <https://console.firebase.google.com> → **Add project**.
-2. Inside the project: **Build → Firestore Database → Create database** (start in production mode, pick a region).
-3. **Build → Authentication → Sign-in method → Google → Enable** and pick a support email.
-4. **Project settings (⚙) → Service accounts → Generate new private key**. Save the downloaded JSON as `serviceAccountKey.json` in the project root (next to `pom.xml`). It is already in `.gitignore`.
-5. **Project settings → General → Your apps → Web app (`</>`)**. Register the app, then copy the `firebaseConfig` snippet and paste it over the placeholder in `src/main/resources/static/js/auth.js`.
-6. (Optional) Paste the rules below into **Firestore → Rules**:
-
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{db}/documents {
-       match /listings/{id} {
-         allow read: if true;
-         allow write: if false;  // server-only via Admin SDK
-       }
-       match /users/{uid} {
-         allow read, write: if request.auth != null && request.auth.uid == uid;
-       }
-       match /searches/{uid}/queries/{id} {
-         allow read, write: if request.auth != null && request.auth.uid == uid;
-       }
-     }
-   }
-   ```
-
-7. Re-run `mvn clean package && java -jar target/new2canada.jar`. You should now see `FULL mode — Firebase + Firestore initialised.`
-
 ---
 
 ## Folder map
@@ -167,20 +136,3 @@ Auth is via `Authorization: Bearer <Firebase-ID-token>`. In DEMO mode the middle
 > - `docs/screens/06-history-firestore.png`
 
 ---
-
-## Team contribution plan (suggested)
-
-| Member | Owns |
-|---|---|
-| Member 1 | Crawler / Parser packages, Firestore caching |
-| Member 2 | DSA classes: Trie, EditDistance, InvertedIndex, PageRanker |
-| Member 3 | Web server, REST API, auth middleware, frontend HTML/JS |
-| Member 4 | Report, presentation, viva prep, screenshots |
-
-(Adjust to your actual team size.)
-
----
-
-## Licence
-
-MIT — feel free to fork for educational use. Please do not submit this as-is for your own coursework; learn from it instead.
