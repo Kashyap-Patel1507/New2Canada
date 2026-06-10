@@ -41,8 +41,7 @@ document.addEventListener('click', e => {
 // ----- Hero submit redirects to the right page ------------------------------
 document.getElementById('heroSearch').addEventListener('submit', (e) => {
     e.preventDefault();
-    const type  = document.getElementById('heroType').value;
     const query = q.value.trim();
-    const url   = `/${type}.html` + (query ? `?q=${encodeURIComponent(query)}` : '');
+    const url   = '/apartments.html' + (query ? `?q=${encodeURIComponent(query)}` : '');
     window.location = url;
 });

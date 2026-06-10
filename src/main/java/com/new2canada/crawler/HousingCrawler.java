@@ -49,8 +49,14 @@ public class HousingCrawler extends WebCrawler {
         if (url == null) return "unknown";
         if (url.contains("kijiji.ca"))      return "kijiji.ca";
         if (url.contains("craigslist.org")) return "craigslist.org";
-        if (url.contains("rentals.ca"))     return "rentals.ca";
+        if (url.contains("zumper.com"))     return "zumper.com";
+        if (url.contains("padmapper.com"))  return "padmapper.com";
+        if (url.contains("viewit.ca"))      return "viewit.ca";
+        if (url.contains("4rent.ca"))       return "4rent.ca";
+        if (url.contains("rentseeker.ca"))  return "rentseeker.ca";
         if (url.contains("realtor.ca"))     return "realtor.ca";
+        if (url.contains("liv.rent"))       return "liv.rent";
+        if (url.contains("rentola.ca"))     return "rentola.ca";
         return url;
     }
 }

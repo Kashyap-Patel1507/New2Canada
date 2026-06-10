@@ -49,25 +49,10 @@ function renderResult(item) {
     const fields = item.fields || {};
     const tags = [];
     if (item.source)         tags.push(`<span class="tag accent">${escape(item.source)}</span>`);
+    if (fields.address)      tags.push(`<span class="tag">🏠 ${escape(fields.address)}</span>`);
     if (fields.city)         tags.push(`<span class="tag">📍 ${escape(fields.city)}</span>`);
     if (fields.bedrooms !== undefined) tags.push(`<span class="tag">🛏 ${fields.bedrooms} BR</span>`);
-    if (fields.bank)         tags.push(`<span class="tag brand">${escape(fields.bank)}</span>`);
-    if (fields.carrier)      tags.push(`<span class="tag brand">${escape(fields.carrier)}</span>`);
-    if (fields.dataGb)       tags.push(`<span class="tag">📊 ${fields.dataGb} GB</span>`);
-    if (fields.employer)     tags.push(`<span class="tag">🏢 ${escape(fields.employer)}</span>`);
-    if (fields.hourlyRate)   tags.push(`<span class="tag ok">$${fields.hourlyRate}/h</span>`);
     if (fields.price)        tags.push(`<span class="tag ok">$${fields.price}/mo</span>`);
-    if (fields.monthlyPrice) tags.push(`<span class="tag ok">$${fields.monthlyPrice}/mo</span>`);
-    if (fields.monthlyFee !== undefined) {
-        tags.push(fields.monthlyFee === 0
-            ? `<span class="tag ok">$0 fee</span>`
-            : `<span class="tag ok">$${fields.monthlyFee}/mo fee</span>`);
-    }
-    if (fields.amount)       tags.push(`<span class="tag ok">$${fields.amount}</span>`);
-    if (fields.level)        tags.push(`<span class="tag">🎓 ${escape(fields.level)}</span>`);
-    if (fields.provider)     tags.push(`<span class="tag">🏛 ${escape(fields.provider)}</span>`);
-    if (fields.studentEligible) tags.push(`<span class="tag ok">Student-friendly</span>`);
-    if (fields.internationalEligible) tags.push(`<span class="tag ok">International OK</span>`);
 
     const safeUrl = item.url && item.url.startsWith('http') ? item.url : '#';
     return `

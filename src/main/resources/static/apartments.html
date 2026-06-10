@@ -11,10 +11,6 @@
         <a href="/" class="brand"><span class="dot"></span> New2Canada</a>
         <nav class="nav-links">
             <a href="/apartments.html" class="active">Apartments</a>
-            <a href="/jobs.html">Jobs</a>
-            <a href="/banks.html">Banks</a>
-            <a href="/mobile.html">Mobile</a>
-            <a href="/scholarships.html">Scholarships</a>
             <a href="/history.html">History</a>
         </nav>
         <span id="authBox"></span>
@@ -25,7 +21,7 @@
     <main>
         <div class="page-head">
             <h2>Find an apartment 🏠</h2>
-            <p>Live Kijiji listings across Windsor, Toronto, Mississauga, Brampton. Ranked with TF·IDF + PageRank smoothing.</p>
+            <p>Live apartment listings scraped from Kijiji, Craigslist, Zumper, PadMapper, ViewIt, 4Rent, RentSeeker, Realtor.ca, Liv.rent and Rentola across Canada. Ranked with TF·IDF + PageRank smoothing.</p>
         </div>
 
         <form class="search-bar" id="searchForm" autocomplete="off">
@@ -41,7 +37,7 @@
             <label for="provinceFilter">Province</label>
             <select id="provinceFilter"><option value="">Any province</option></select>
             <label for="cityFilter">City</label>
-            <select id="cityFilter"><option value="">Any city</option></select>
+            <select id="cityFilter" disabled><option value="">Select a province first</option></select>
             <button type="button" class="clear-btn" id="clearFilters">Clear filters</button>
         </div>
 

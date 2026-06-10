@@ -1,4 +1,4 @@
-// Shared logic for /apartments.html, /jobs.html, /banks.html, /mobile.html.
+// Shared logic for /apartments.html.
 // The page sets window.PAGE_TYPE before this script loads.
 
 const TYPE     = window.PAGE_TYPE || 'apartments';
@@ -19,13 +19,57 @@ const initialCity     = qsParam('city');
 const initialProvince = qsParam('province');
 if (initialQ) q.value = initialQ;
 
+let citiesByProvince = {};
+
+// All 13 Canadian provinces & territories, plus their major cities — always
+// offered in the dropdowns, even before any listings have been crawled for
+// them. Crawled cities (from /api/facets) are merged in on top of this.
+const ALL_CITIES_BY_PROVINCE = {
+    AB: ['Calgary', 'Edmonton', 'Red Deer', 'Lethbridge', 'St. Albert', 'Medicine Hat', 'Grande Prairie', 'Airdrie', 'Spruce Grove', 'Leduc', 'Fort McMurray'],
+    BC: ['Vancouver', 'Victoria', 'Surrey', 'Burnaby', 'Richmond', 'Abbotsford', 'Kelowna', 'Kamloops', 'Nanaimo', 'Prince George', 'Coquitlam', 'Langley'],
+    MB: ['Winnipeg', 'Brandon', 'Steinbach', 'Thompson', 'Portage la Prairie'],
+    NB: ['Saint John', 'Moncton', 'Fredericton', 'Dieppe', 'Miramichi'],
+    NL: ["St. John's", 'Mount Pearl', 'Corner Brook', 'Conception Bay South'],
+    NS: ['Halifax', 'Sydney', 'Dartmouth', 'Truro', 'New Glasgow'],
+    NT: ['Yellowknife', 'Hay River', 'Inuvik'],
+    NU: ['Iqaluit', 'Rankin Inlet', 'Arviat'],
+    ON: ['Toronto', 'Ottawa', 'Mississauga', 'Brampton', 'Hamilton', 'London', 'Markham', 'Vaughan', 'Kitchener', 'Windsor', 'Richmond Hill', 'Oakville', 'Burlington', 'Oshawa', 'Barrie', 'St. Catharines', 'Guelph', 'Cambridge', 'Whitby', 'Kingston', 'Waterloo', 'Sudbury', 'Thunder Bay', 'Niagara Falls'],
+    PE: ['Charlottetown', 'Summerside', 'Stratford', 'Cornwall'],
+    QC: ['Montreal', 'Quebec City', 'Laval', 'Gatineau', 'Longueuil', 'Sherbrooke', 'Saguenay', 'Levis', 'Trois-Rivieres', 'Terrebonne', 'Saint-Jean-sur-Richelieu', 'Repentigny', 'Brossard'],
+    SK: ['Saskatoon', 'Regina', 'Prince Albert', 'Moose Jaw', 'Swift Current', 'Yorkton'],
+    YT: ['Whitehorse', 'Dawson City', 'Watson Lake'],
+};
+const ALL_PROVINCES = Object.keys(ALL_CITIES_BY_PROVINCE);
+
 // ----- Filter dropdowns -----------------------------------------------------
 async function loadFacets() {
     if (!HAS_FILTERS) return;
     try {
         const data = await api.get('/api/facets?type=' + TYPE);
-        fillSelect(provSel, data.provinces || [], 'Any province', initialProvince);
-        fillSelect(citySel, data.cities    || [], 'Any city',     initialCity);
+        const crawledCitiesByProvince = data.citiesByProvince || {};
+
+        // Merge crawled cities into the static list so nothing is missed
+        // in either direction.
+        citiesByProvince = {};
+        for (const prov of ALL_PROVINCES) {
+            citiesByProvince[prov] = Array.from(new Set([
+                ...(ALL_CITIES_BY_PROVINCE[prov] || []),
+                ...(crawledCitiesByProvince[prov] || []),
+            ])).sort();
+        }
+        for (const prov of Object.keys(crawledCitiesByProvince)) {
+            if (!citiesByProvince[prov]) citiesByProvince[prov] = crawledCitiesByProvince[prov];
+        }
+
+        const provinces = Array.from(new Set([...ALL_PROVINCES, ...(data.provinces || [])])).sort();
+        fillSelect(provSel, provinces, 'Any province', initialProvince);
+        if (provSel.value) {
+            fillSelect(citySel, citiesByProvince[provSel.value] || [], 'Any city', initialCity);
+            citySel.disabled = false;
+        } else {
+            fillSelect(citySel, [], 'Select a province first', '');
+            citySel.disabled = true;
+        }
     } catch (e) { /* no facets yet */ }
 }
 
@@ -38,10 +82,21 @@ function fillSelect(sel, values, anyLabel, preselect) {
 }
 
 if (HAS_FILTERS) {
-    provSel.addEventListener('change', () => runCurrent());
+    provSel.addEventListener('change', () => {
+        if (provSel.value) {
+            fillSelect(citySel, citiesByProvince[provSel.value] || [], 'Any city', '');
+            citySel.disabled = false;
+        } else {
+            fillSelect(citySel, [], 'Select a province first', '');
+            citySel.disabled = true;
+        }
+        runCurrent();
+    });
     citySel.addEventListener('change', () => runCurrent());
     clearBtn.addEventListener('click', () => {
-        provSel.value = ''; citySel.value = '';
+        provSel.value = '';
+        fillSelect(citySel, [], 'Select a province first', '');
+        citySel.disabled = true;
         runCurrent();
     });
 }

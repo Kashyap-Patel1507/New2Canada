@@ -6,10 +6,6 @@ import com.new2canada.database.ListingRepository;
 import com.new2canada.database.SearchHistoryRepository;
 import com.new2canada.indexing.InvertedIndex;
 import com.new2canada.models.Apartment;
-import com.new2canada.models.BankPlan;
-import com.new2canada.models.Job;
-import com.new2canada.models.MobilePlan;
-import com.new2canada.models.Scholarship;
 import com.new2canada.models.SearchResult;
 import com.new2canada.ranking.PageRanker;
 import com.new2canada.ranking.ResultSorter;
@@ -62,7 +58,7 @@ public class SearchEngine {
         this.listingRepo = listingRepo;
         this.historyRepo = historyRepo;
         this.spellChecker = new SpellChecker();
-        for (String t : new String[]{"apartments", "jobs", "banks", "mobile", "scholarships"}) {
+        for (String t : new String[]{"apartments"}) {
             indexes.put(t, new InvertedIndex());
             rankers.put(t, new PageRanker(indexes.get(t)));
         }
@@ -88,75 +84,9 @@ public class SearchEngine {
                 a.getUrl(), a.getSource(), a.toIndexText())
                 .addField("price", a.getMonthlyRent())
                 .addField("bedrooms", a.getBedrooms())
+                .addField("address", a.getAddress())
                 .addField("city", a.getCity())
                 .addField("province", a.getProvince());
-    }
-
-    public synchronized void ingestJob(Job j) {
-        if (j == null) return;
-        if (listingRepo != null) listingRepo.upsertJob(j);
-        indexJob(j);
-    }
-
-    private void indexJob(Job j) {
-        String prov = j.getProvince() == null || j.getProvince().isEmpty()
-                ? "" : " (" + j.getProvince() + ")";
-        registerDoc("jobs", j.getId(), j.getTitle(),
-                j.getEmployer() + " · " + j.getCity() + prov + " · $" + j.getHourlyRate() + "/h",
-                j.getUrl(), j.getSource(), j.toIndexText())
-                .addField("hourlyRate", j.getHourlyRate())
-                .addField("employer", j.getEmployer())
-                .addField("city", j.getCity())
-                .addField("province", j.getProvince());
-    }
-
-    public synchronized void ingestBank(BankPlan b) {
-        if (b == null) return;
-        if (listingRepo != null) listingRepo.upsertBank(b);
-        indexBank(b);
-    }
-
-    private void indexBank(BankPlan b) {
-        registerDoc("banks", b.getId(), b.getPlanName(),
-                b.getBankName() + " · $" + b.getMonthlyFee() + "/mo",
-                b.getUrl(), b.getSource(), b.toIndexText())
-                .addField("bank", b.getBankName())
-                .addField("monthlyFee", b.getMonthlyFee())
-                .addField("studentEligible", b.isStudentEligible());
-    }
-
-    public synchronized void ingestScholarship(Scholarship s) {
-        if (s == null) return;
-        if (listingRepo != null) listingRepo.upsertScholarship(s);
-        indexScholarship(s);
-    }
-
-    private void indexScholarship(Scholarship s) {
-        String amt = s.getAmount() > 0 ? "$" + s.getAmount() : "Amount varies";
-        registerDoc("scholarships", s.getId(), s.getName(),
-                s.getProvider() + " · " + s.getLevel() + " · " + amt,
-                s.getUrl(), s.getSource(), s.toIndexText())
-                .addField("provider", s.getProvider())
-                .addField("amount", s.getAmount())
-                .addField("level", s.getLevel())
-                .addField("internationalEligible", s.isInternationalEligible())
-                .addField("city", s.getCity())
-                .addField("province", s.getProvince());
-    }
-
-    public synchronized void ingestMobile(MobilePlan m) {
-        if (m == null) return;
-        if (listingRepo != null) listingRepo.upsertMobile(m);
-        indexMobile(m);
-    }
-
-    private void indexMobile(MobilePlan m) {
-        registerDoc("mobile", m.getId(), m.getPlanName(),
-                m.getCarrier() + " · " + m.getDataGb() + " GB · $" + m.getMonthlyPrice() + "/mo",
-                m.getUrl(), m.getSource(), m.toIndexText())
-                .addField("carrier", m.getCarrier())
-                .addField("dataGb", m.getDataGb())
-                .addField("monthlyPrice", m.getMonthlyPrice());
     }
 
     /**
@@ -174,12 +104,8 @@ public class SearchEngine {
             String type = String.valueOf(row.getOrDefault("type", ""));
             try {
                 switch (type) {
-                    case "apartment"   -> { indexApartment(rowToApartment(row));     n++; }
-                    case "job"         -> { indexJob(rowToJob(row));                 n++; }
-                    case "bank"        -> { indexBank(rowToBank(row));               n++; }
-                    case "mobile"      -> { indexMobile(rowToMobile(row));           n++; }
-                    case "scholarship" -> { indexScholarship(rowToScholarship(row)); n++; }
-                    default            -> { /* unknown type — skip silently */ }
+                    case "apartment" -> { indexApartment(rowToApartment(row)); n++; }
+                    default          -> { /* unknown type — skip silently */ }
                 }
             } catch (RuntimeException e) {
                 System.err.println("hydrate: skipping malformed row "
@@ -194,42 +120,9 @@ public class SearchEngine {
 
     private static Apartment rowToApartment(Map<String, Object> r) {
         return new Apartment(
-                str(r, "id"), str(r, "title"),
+                str(r, "id"), str(r, "title"), str(r, "address"),
                 str(r, "city"), str(r, "province"),
                 intOf(r, "bedrooms"), dbl(r, "monthlyRent"),
-                str(r, "source"), str(r, "url"), str(r, "description"));
-    }
-
-    private static Job rowToJob(Map<String, Object> r) {
-        return new Job(
-                str(r, "id"), str(r, "title"), str(r, "employer"),
-                str(r, "city"), str(r, "province"),
-                dbl(r, "hourlyRate"),
-                str(r, "source"), str(r, "url"), str(r, "description"));
-    }
-
-    private static BankPlan rowToBank(Map<String, Object> r) {
-        return new BankPlan(
-                str(r, "id"), str(r, "bankName"), str(r, "planName"),
-                dbl(r, "monthlyFee"), intOf(r, "freeTransactions"),
-                bool(r, "studentEligible"),
-                str(r, "source"), str(r, "url"), str(r, "description"));
-    }
-
-    private static MobilePlan rowToMobile(Map<String, Object> r) {
-        return new MobilePlan(
-                str(r, "id"), str(r, "carrier"), str(r, "planName"),
-                dbl(r, "monthlyPrice"), dbl(r, "dataGb"),
-                bool(r, "unlimitedTalk"),
-                str(r, "source"), str(r, "url"), str(r, "description"));
-    }
-
-    private static Scholarship rowToScholarship(Map<String, Object> r) {
-        return new Scholarship(
-                str(r, "id"), str(r, "name"), str(r, "provider"),
-                dbl(r, "amount"), str(r, "level"),
-                bool(r, "internationalEligible"),
-                str(r, "city"), str(r, "province"),
                 str(r, "source"), str(r, "url"), str(r, "description"));
     }
 
@@ -250,11 +143,6 @@ public class SearchEngine {
         if (v instanceof Number n) return n.doubleValue();
         try { return v == null ? 0 : Double.parseDouble(String.valueOf(v)); }
         catch (NumberFormatException e) { return 0; }
-    }
-    private static boolean bool(Map<String, Object> r, String k) {
-        Object v = r.get(k);
-        if (v instanceof Boolean b) return b;
-        return v != null && "true".equalsIgnoreCase(String.valueOf(v));
     }
 
     private SearchResult registerDoc(String type, String id, String title, String subtitle,
@@ -340,19 +228,30 @@ public class SearchEngine {
      * Returns the distinct cities and provinces present in the index for a
      * given type. Used by the front-end to populate filter dropdowns.
      */
-    public synchronized Map<String, List<String>> facets(String type) {
+    public synchronized Map<String, Object> facets(String type) {
         java.util.TreeSet<String> cities    = new java.util.TreeSet<>();
         java.util.TreeSet<String> provinces = new java.util.TreeSet<>();
+        Map<String, java.util.TreeSet<String>> citiesByProvince = new java.util.TreeMap<>();
         for (SearchResult sr : docs.values()) {
             if (!type.equals(sr.getType())) continue;
             Object c = sr.getFields().get("city");
             Object p = sr.getFields().get("province");
-            if (c != null && !c.toString().isBlank()) cities.add(c.toString());
-            if (p != null && !p.toString().isBlank()) provinces.add(p.toString());
+            String city = c != null ? c.toString().trim() : "";
+            String prov = p != null ? p.toString().trim() : "";
+            if (!city.isEmpty()) cities.add(city);
+            if (!prov.isEmpty()) provinces.add(prov);
+            if (!prov.isEmpty() && !city.isEmpty()) {
+                citiesByProvince.computeIfAbsent(prov, k -> new java.util.TreeSet<>()).add(city);
+            }
         }
-        Map<String, List<String>> out = new LinkedHashMap<>();
+        Map<String, List<String>> citiesByProvinceOut = new LinkedHashMap<>();
+        for (Map.Entry<String, java.util.TreeSet<String>> e : citiesByProvince.entrySet()) {
+            citiesByProvinceOut.put(e.getKey(), new ArrayList<>(e.getValue()));
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
         out.put("cities", new ArrayList<>(cities));
         out.put("provinces", new ArrayList<>(provinces));
+        out.put("citiesByProvince", citiesByProvinceOut);
         return out;
     }
 

@@ -11,6 +11,7 @@ public class Apartment {
 
     private final String id;
     private final String title;
+    private final String address;
     private final String city;
     private final String province;
     private final int bedrooms;
@@ -19,10 +20,11 @@ public class Apartment {
     private final String url;
     private final String description;
 
-    public Apartment(String id, String title, String city, String province, int bedrooms,
-                     double monthlyRent, String source, String url, String description) {
+    public Apartment(String id, String title, String address, String city, String province,
+                     int bedrooms, double monthlyRent, String source, String url, String description) {
         this.id = id;
         this.title = title;
+        this.address = address == null ? "" : address;
         this.city = city;
         this.province = province == null ? "" : province;
         this.bedrooms = bedrooms;
@@ -34,6 +36,7 @@ public class Apartment {
 
     public String getId()          { return id; }
     public String getTitle()       { return title; }
+    public String getAddress()     { return address; }
     public String getCity()        { return city; }
     public String getProvince()    { return province; }
     public int getBedrooms()       { return bedrooms; }
@@ -44,7 +47,7 @@ public class Apartment {
 
     /** Text used by the inverted index: everything searchable, lowercased downstream. */
     public String toIndexText() {
-        return title + " " + city + " " + province + " " + bedrooms + "br "
+        return title + " " + address + " " + city + " " + province + " " + bedrooms + "br "
                 + source + " " + description;
     }
 }
