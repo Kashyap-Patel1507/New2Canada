@@ -124,10 +124,14 @@ q.addEventListener('input', () => {
 
 function renderAutocomplete(words) {
     if (!words.length) { acList.style.display = 'none'; return; }
-    acList.innerHTML = words.map(w => `<div>${escapeHtml(w)}</div>`).join('');
+    acList.innerHTML = words.map(w => `
+        <div class="ac-item">
+            <span class="material-symbols-outlined text-outline">search</span>
+            <span>${escapeHtml(w)}</span>
+        </div>`).join('');
     acList.style.display = 'block';
     [...acList.children].forEach(el => el.onclick = () => {
-        q.value = el.textContent;
+        q.value = el.querySelector('span:last-child').textContent;
         acList.style.display = 'none';
         document.getElementById('searchForm').dispatchEvent(new Event('submit'));
     });
@@ -155,15 +159,15 @@ async function runSearch(query) {
         }
         renderCount(data.results.length, query);
         if (!data.results.length) {
-            results.innerHTML = `<div class="card muted">
-                <h3>No matches.</h3>
-                <p class="muted">Try a broader term or clear filters.</p>
+            results.innerHTML = `<div class="empty-card md:col-span-2 lg:col-span-3">
+                <h3>No matches</h3>
+                <p>Try a broader term or clear filters.</p>
             </div>`;
             return;
         }
         results.innerHTML = data.results.map(renderResult).join('');
     } catch (e) {
-        results.innerHTML = `<div class="card muted">Error: ${escapeHtml(e.message)}</div>`;
+        results.innerHTML = `<div class="empty-card md:col-span-2 lg:col-span-3">Error: ${escapeHtml(e.message)}</div>`;
     }
 }
 
@@ -177,7 +181,7 @@ async function runTopPicks() {
         if (!data.top.length) {
             const filtersActive = (provSel && provSel.value) || (citySel && citySel.value);
             results.innerHTML = filtersActive
-                ? `<div class="card muted">No ${TYPE} match the current filters. <a href="#" id="clearLink">Clear filters</a></div>`
+                ? `<div class="empty-card md:col-span-2 lg:col-span-3">No ${TYPE} match the current filters. <a href="#" id="clearLink">Clear filters</a></div>`
                 : await emptyIndexCard();
             const c = document.getElementById('clearLink');
             if (c) c.onclick = (e) => { e.preventDefault(); clearBtn && clearBtn.click(); };
@@ -185,7 +189,7 @@ async function runTopPicks() {
         }
         results.innerHTML = data.top.map(renderResult).join('');
     } catch (e) {
-        results.innerHTML = `<div class="card muted">Error: ${escapeHtml(e.message)}</div>`;
+        results.innerHTML = `<div class="empty-card md:col-span-2 lg:col-span-3">Error: ${escapeHtml(e.message)}</div>`;
     }
 }
 
@@ -199,14 +203,14 @@ async function emptyIndexCard() {
         const stats = await fetch('/api/debug').then(r => r.json());
         const count = (stats.documentsByType || {})[TYPE] || 0;
         if (count === 0) {
-            return `<div class="card muted">
+            return `<div class="empty-card md:col-span-2 lg:col-span-3">
                 <h3>Still indexing ${TYPE}…</h3>
                 <p>The crawler hasn't finished its first pass yet. Refresh the page in a few seconds — curated entries appear within a second of startup, scraped entries take ~30&ndash;60s per category.</p>
             </div>`;
         }
-        return `<div class="card muted">No ${TYPE} available yet.</div>`;
+        return `<div class="empty-card md:col-span-2 lg:col-span-3">No ${TYPE} available yet.</div>`;
     } catch (e) {
-        return `<div class="card muted">No ${TYPE} available yet.</div>`;
+        return `<div class="empty-card md:col-span-2 lg:col-span-3">No ${TYPE} available yet.</div>`;
     }
 }
 

@@ -54,19 +54,17 @@ function renderAuthUI(user, authMod) {
     const box = document.getElementById('authBox');
     if (!box) return;
     if (user) {
-        const photo = user.photoURL ? `<img src="${user.photoURL}" alt="">` : '';
+        const photo = user.photoURL
+            ? `<img src="${user.photoURL}" alt="" class="w-8 h-8 rounded-full">`
+            : `<span class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary material-symbols-outlined text-[18px]">person</span>`;
         box.innerHTML = `
-            <span class="user-chip">${photo}<span>Hi, ${user.displayName || user.email}</span></span>
-            <button class="gsi-button" id="signOutBtn">Sign out</button>`;
+            <div class="flex items-center gap-3">
+                <span class="flex items-center gap-2 pl-1 pr-4 py-1 bg-surface-container rounded-full font-label-md text-label-md text-on-surface">${photo}<span>${user.displayName || user.email}</span></span>
+                <button id="signOutBtn" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200">Sign out</button>
+            </div>`;
         document.getElementById('signOutBtn').onclick = () => authMod.signOut(firebaseAuth);
     } else {
-        box.innerHTML = `<button class="gsi-button" id="signInBtn">
-            <span>G</span> Sign in with Google</button>`;
-        document.getElementById('signInBtn').onclick = async () => {
-            const provider = new authMod.GoogleAuthProvider();
-            try { await authMod.signInWithPopup(firebaseAuth, provider); }
-            catch (e) { alert('Sign in failed: ' + e.message); }
-        };
+        box.innerHTML = `<a href="/login.html" class="font-label-md text-label-md bg-primary text-on-primary px-6 py-2.5 rounded-full hover:shadow-lg active:scale-95 transition-all duration-200">Sign in</a>`;
     }
 }
 
@@ -81,12 +79,21 @@ window.getIdToken = async function () {
     return await auth.currentUser.getIdToken();
 };
 
+// Used by login.html's "Sign in with Google" button.
+window.signInWithGoogle = async function () {
+    const auth = await ensureFirebase();
+    if (!auth) throw new Error('Sign-in is disabled in DEMO mode — configure Firebase in js/auth.js');
+    const authMod = window.__firebaseAuthModule__;
+    const provider = new authMod.GoogleAuthProvider();
+    await authMod.signInWithPopup(auth, provider);
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     const auth = await ensureFirebase();
     // Render the placeholder Sign-in button even when firebase isn't configured.
     if (!auth) {
         const box = document.getElementById('authBox');
         if (box) box.innerHTML =
-            `<span class="muted" title="DEMO mode">Sign-in disabled — configure Firebase in js/auth.js</span>`;
+            `<span class="font-label-sm text-label-sm text-on-surface-variant" title="DEMO mode">Sign-in disabled (DEMO mode)</span>`;
     }
 });

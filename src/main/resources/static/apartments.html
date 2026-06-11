@@ -1,56 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Apartments — New2Canada</title>
-    <link rel="stylesheet" href="/css/styles.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Find Your Home | New2Canada Apartments</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/js/tailwind-config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/stitch.css">
 </head>
-<body>
-    <header class="topbar">
-        <a href="/" class="brand"><span class="dot"></span> New2Canada</a>
-        <nav class="nav-links">
-            <a href="/apartments.html" class="active">Apartments</a>
-            <a href="/history.html">History</a>
-        </nav>
-        <span id="authBox"></span>
-    </header>
+<body class="bg-background font-body-md text-on-surface">
+<!-- TopNavBar -->
+<header class="bg-surface shadow-sm sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<a class="font-headline-md text-headline-md font-bold text-primary" href="/">New2Canada</a>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 transition-colors duration-200" href="/apartments.html">Apartments</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="/history.html">History</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<span id="authBox"></span>
+</div>
+</div>
+</header>
 
-    <div id="demoBanner" class="banner" style="display:none;"></div>
+<div id="demoBanner" class="hidden bg-amber-50 border-b border-amber-200 text-amber-800 text-center text-body-sm py-3 px-margin-mobile"></div>
 
-    <main>
-        <div class="page-head">
-            <h2>Find an apartment 🏠</h2>
-            <p>Live apartment listings scraped from Kijiji, Craigslist, Zumper, PadMapper, ViewIt, 4Rent, RentSeeker, Realtor.ca, Liv.rent and Rentola across Canada. Ranked with TF·IDF + PageRank smoothing.</p>
-        </div>
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8">
+<!-- Search Section -->
+<section class="mb-12">
+<h1 class="font-headline-lg text-headline-lg mb-6 tracking-tight">Find your Canadian home</h1>
+<form id="searchForm" autocomplete="off" class="flex flex-col md:flex-row gap-4 items-stretch max-w-4xl">
+<div class="autocomplete-wrap relative flex-grow group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-12 pr-4 py-4 rounded-xl border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary/10 bg-white transition-all outline-none text-body-md shadow-sm" id="q" placeholder="Try: 2 bedroom toronto, basement windsor, downtown..." type="text"/>
+<!-- Autocomplete Dropdown -->
+<div class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-outline-variant overflow-hidden z-40" id="acList">
+</div>
+</div>
+<button type="button" id="topBtn" class="bg-secondary text-white font-label-md text-label-md px-8 py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-on-secondary-container transition-all active:scale-95 shadow-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+Top picks
+</button>
+</form>
+</section>
 
-        <form class="search-bar" id="searchForm" autocomplete="off">
-            <div class="autocomplete-wrap">
-                <input id="q" type="text" placeholder="Try: 2 bedroom toronto, basement windsor, downtown…">
-                <div id="acList" class="autocomplete-list" style="display:none;"></div>
-            </div>
-            <button type="submit">Search</button>
-            <button type="button" class="secondary" id="topBtn">Top picks</button>
-        </form>
+<!-- Filters Section -->
+<section class="mb-10 bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/30">
+<div class="flex flex-wrap items-end gap-6">
+<div class="flex-1 min-w-[200px]">
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2" for="provinceFilter">Province</label>
+<select class="w-full p-3 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary outline-none text-body-sm" id="provinceFilter">
+<option value="">Any province</option>
+<option value="AB">Alberta</option>
+<option value="BC">British Columbia</option>
+<option value="MB">Manitoba</option>
+<option value="NB">New Brunswick</option>
+<option value="NL">Newfoundland and Labrador</option>
+<option value="NS">Nova Scotia</option>
+<option value="NT">Northwest Territories</option>
+<option value="NU">Nunavut</option>
+<option value="ON">Ontario</option>
+<option value="PE">Prince Edward Island</option>
+<option value="QC">Quebec</option>
+<option value="SK">Saskatchewan</option>
+<option value="YT">Yukon</option>
+</select>
+</div>
+<div class="flex-1 min-w-[200px]">
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2" for="cityFilter">City</label>
+<select class="w-full p-3 rounded-lg border border-outline-variant bg-surface-container-low focus:ring-2 focus:ring-primary outline-none text-body-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all" disabled id="cityFilter">
+<option value="">Select a province first</option>
+</select>
+</div>
+<button type="button" class="font-label-md text-label-md text-outline hover:text-error flex items-center gap-1 py-3 transition-colors" id="clearFilters">
+<span class="material-symbols-outlined">filter_alt_off</span>
+Clear filters
+</button>
+</div>
+</section>
 
-        <div class="filter-row" id="filterRow">
-            <label for="provinceFilter">Province</label>
-            <select id="provinceFilter"><option value="">Any province</option></select>
-            <label for="cityFilter">City</label>
-            <select id="cityFilter" disabled><option value="">Select a province first</option></select>
-            <button type="button" class="clear-btn" id="clearFilters">Clear filters</button>
-        </div>
+<!-- Results Summary -->
+<div id="resultCount" class="mb-4 font-body-md text-on-surface-variant"></div>
+<div id="didYouMean"></div>
 
-        <div id="resultCount" class="result-count"></div>
-        <div id="didYouMean"></div>
-        <div id="results" class="result-list"></div>
-    </main>
+<!-- Result List -->
+<div id="results" class="results-scroll grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter"></div>
+</main>
 
-    <footer>COMP 8547 · Advanced Computing Concepts · University of Windsor</footer>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-outline-variant mt-20">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
+<div class="col-span-2 md:col-span-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface mb-4">New2Canada</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 leading-relaxed">
+    Helping newcomers find home in Canada with ease and clarity.
+</p>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-primary mb-4">Tools</h4>
+<ul class="space-y-2">
+<li><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors" href="/autocomplete.html">Autocomplete</a></li>
+<li><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors" href="/spellcheck.html">Spell Check</a></li>
+<li><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors" href="/validate.html">Validate</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-primary mb-4">Account</h4>
+<ul class="space-y-2">
+<li><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors" href="/history.html">Search History</a></li>
+<li><a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors" href="/login.html">Sign in</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-primary mb-4">About</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">COMP 8547 · Advanced Computing Concepts · University of Windsor</p>
+</div>
+</div>
+</footer>
 
-    <script src="/js/auth.js"></script>
-    <script src="/js/app.js"></script>
-    <script>window.PAGE_TYPE='apartments';</script>
-    <script src="/js/pages/search-page.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/app.js"></script>
+<script>window.PAGE_TYPE='apartments';</script>
+<script src="/js/pages/search-page.js"></script>
 </body>
 </html>

@@ -1,31 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Sign in — New2Canada</title>
-    <link rel="stylesheet" href="/css/styles.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sign In - New2Canada</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/js/tailwind-config.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/stitch.css">
 </head>
-<body>
-    <header class="topbar">
-        <h1>New2Canada</h1>
-        <span id="authBox"></span>
-    </header>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col bg-mesh">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-md shadow-sm">
+<nav class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<a class="font-headline-md text-headline-md font-bold text-primary" href="/">New2Canada</a>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="/apartments.html">Apartments</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="/history.html">History</a>
+</div>
+<div class="flex items-center" id="authBox"></div>
+</nav>
+</header>
 
-    <div id="demoBanner" class="banner" style="display:none;"></div>
+<div id="demoBanner" class="hidden bg-amber-50 border-b border-amber-200 text-amber-800 text-center text-body-sm py-3 px-margin-mobile mt-[68px]"></div>
 
-    <main>
-        <div class="card" style="max-width: 420px; margin: 60px auto;">
-            <h2>Sign in</h2>
-            <p>Sign in with your Google account to save your search history across sessions.</p>
-            <div id="authBox" style="margin: 16px 0;"></div>
-            <p class="muted">You can still use every public feature without signing in.</p>
-            <p><a href="/">← Back to home</a></p>
-        </div>
-    </main>
+<!-- Main Content Area -->
+<main class="flex-grow flex items-center justify-center pt-24 pb-12 px-margin-mobile">
+<div class="w-full max-w-md bg-surface-container-lowest rounded-[24px] p-8 md:p-12 card-shadow text-center relative overflow-hidden group">
+<!-- Subtle Decorative Element -->
+<div class="absolute -top-12 -right-12 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all duration-700"></div>
+<!-- Icon/Branding -->
+<div class="mb-8 flex justify-center">
+<div class="w-16 h-16 bg-primary-fixed rounded-2xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined !text-4xl" style="font-variation-settings: 'FILL' 1;">roofing</span>
+</div>
+</div>
+<!-- Headlines -->
+<h1 class="font-headline-lg-mobile md:font-headline-md text-headline-lg-mobile md:text-headline-md text-on-surface mb-3 tracking-tight">
+    Welcome to New2Canada
+</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mb-10 max-w-[280px] mx-auto">
+    Sign in to save your favorite listings and search history.
+</p>
+<!-- Sign in with Google Button -->
+<button id="googleSignInBtn" class="w-full h-[56px] flex items-center justify-center gap-4 bg-white border border-outline-variant rounded-full font-label-md text-label-md text-on-surface hover:bg-surface-container-low transition-all duration-200 active:scale-[0.98] card-shadow mb-8 group/btn">
+<svg class="shrink-0" height="24" viewBox="0 0 24 24" width="24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+<span id="googleSignInLabel">Sign in with Google</span>
+</button>
+<p id="loginStatus" class="font-body-sm text-body-sm text-on-surface-variant mb-2"></p>
+<!-- Legal Footer -->
+<div class="mt-12 pt-8 border-t border-surface-variant">
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+    By signing in, you agree to our
+    <a class="text-primary font-semibold hover:underline" href="#">Terms of Service</a>
+    and
+    <a class="text-primary font-semibold hover:underline" href="#">Privacy Policy</a>.
+</p>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-6">
+    You can still use every public feature without signing in. <a class="text-primary font-semibold hover:underline" href="/">Back to home</a>
+</p>
+</div>
+</main>
 
-    <footer>COMP 8547 — University of Windsor</footer>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-outline-variant mt-auto">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
+<div class="col-span-2 md:col-span-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface mb-4">
+    New2Canada
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs">
+    Helping newcomers find home in Canada with ease and clarity.
+</p>
+</div>
+<div class="flex flex-col gap-3">
+<h4 class="font-label-md text-label-md text-on-surface mb-2">Tools</h4>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors duration-200" href="/autocomplete.html">Autocomplete</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors duration-200" href="/spellcheck.html">Spell Check</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors duration-200" href="/validate.html">Validate</a>
+</div>
+<div class="flex flex-col gap-3">
+<h4 class="font-label-md text-label-md text-on-surface mb-2">Account</h4>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors duration-200" href="/apartments.html">Apartments</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-secondary transition-colors duration-200" href="/history.html">Search History</a>
+</div>
+<div class="flex flex-col gap-3">
+<h4 class="font-label-md text-label-md text-on-surface mb-2">About</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">COMP 8547 · University of Windsor</p>
+</div>
+</div>
+</footer>
 
-    <script src="/js/auth.js"></script>
-    <script src="/js/app.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/app.js"></script>
+<script>
+    document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('googleSignInBtn');
+        const label = document.getElementById('googleSignInLabel');
+        const status = document.getElementById('loginStatus');
+        const original = label.textContent;
+        btn.disabled = true;
+        label.textContent = 'Signing in…';
+        try {
+            await window.signInWithGoogle();
+            window.location = '/';
+        } catch (e) {
+            status.textContent = e.message || 'Sign in failed.';
+            btn.disabled = false;
+            label.textContent = original;
+        }
+    });
+</script>
 </body>
 </html>

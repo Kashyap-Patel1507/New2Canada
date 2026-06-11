@@ -25,10 +25,14 @@ q.addEventListener('input', () => {
                 .then(r => r.json());
             const words = data.suggestions || [];
             if (!words.length) { ac.style.display = 'none'; return; }
-            ac.innerHTML = words.map(w => `<div>${w}</div>`).join('');
+            ac.innerHTML = `<div class="py-2">` + words.map(w => `
+                <div class="ac-item">
+                    <span class="material-symbols-outlined text-outline text-sm">location_on</span>
+                    <span>${w}</span>
+                </div>`).join('') + `</div>`;
             ac.style.display = 'block';
-            [...ac.children].forEach(el => el.onclick = () => {
-                q.value = el.textContent;
+            [...ac.querySelectorAll('.ac-item')].forEach(el => el.onclick = () => {
+                q.value = el.querySelector('span:last-child').textContent;
                 ac.style.display = 'none';
             });
         } catch (e) { ac.style.display = 'none'; }

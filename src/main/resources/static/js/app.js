@@ -47,19 +47,45 @@ async function checkDemoBanner() {
 // ---- Result card renderer ---------------------------------------------------
 function renderResult(item) {
     const fields = item.fields || {};
-    const tags = [];
-    if (item.source)         tags.push(`<span class="tag accent">${escape(item.source)}</span>`);
-    if (fields.address)      tags.push(`<span class="tag">🏠 ${escape(fields.address)}</span>`);
-    if (fields.city)         tags.push(`<span class="tag">📍 ${escape(fields.city)}</span>`);
-    if (fields.bedrooms !== undefined) tags.push(`<span class="tag">🛏 ${fields.bedrooms} BR</span>`);
-    if (fields.price)        tags.push(`<span class="tag ok">$${fields.price}/mo</span>`);
-
+    const cityProvince = [fields.city, fields.province].filter(Boolean).map(escape).join(', ');
     const safeUrl = item.url && item.url.startsWith('http') ? item.url : '#';
+
+    const detailRows = [];
+    if (fields.address) detailRows.push(`
+        <div class="flex items-center gap-2 text-on-surface-variant text-body-sm">
+            <span aria-hidden="true">🏠</span><span>${escape(fields.address)}</span>
+        </div>`);
+    if (cityProvince) detailRows.push(`
+        <div class="flex items-center gap-2 text-on-surface-variant text-body-sm">
+            <span aria-hidden="true">📍</span><span>${cityProvince}</span>
+        </div>`);
+    if (fields.bedrooms !== undefined) detailRows.push(`
+        <div class="flex items-center gap-2 text-on-surface-variant text-body-sm">
+            <span aria-hidden="true">🛏</span><span>${escape(String(fields.bedrooms))} BR</span>
+        </div>`);
+
+    const sourceBadge = item.source
+        ? `<span class="shrink-0 bg-surface-container text-on-surface-variant font-label-sm px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold">${escape(item.source)}</span>`
+        : '';
+    const priceBadge = fields.price
+        ? `<span class="bg-tertiary text-white font-label-md text-label-md px-3 py-1.5 rounded-full shadow-sm">$${escape(String(fields.price))}/mo</span>`
+        : '<span></span>';
+
     return `
-        <article class="result-card">
-            <h3><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${escape(item.title || 'Untitled')}</a></h3>
-            <div class="subtitle">${escape(item.subtitle || '')}</div>
-            <div class="tags">${tags.join('')}</div>
+        <article class="apartment-card bg-white rounded-[24px] overflow-hidden border border-outline-variant/30 flex flex-col group">
+            <div class="p-6 flex flex-col flex-grow">
+                <div class="flex items-start justify-between gap-2 mb-3">
+                    <h3 class="font-headline-sm text-headline-sm line-clamp-2">${escape(item.title || 'Untitled')}</h3>
+                    ${sourceBadge}
+                </div>
+                <div class="space-y-3 mb-6">
+                    ${detailRows.join('')}
+                </div>
+                <div class="mt-auto flex items-center justify-between gap-3">
+                    ${priceBadge}
+                    <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="flex-1 text-center py-3 bg-primary text-white font-label-md text-label-md rounded-xl hover:bg-primary-container transition-colors active:scale-95">View listing</a>
+                </div>
+            </div>
         </article>`;
 }
 
@@ -72,9 +98,10 @@ function escape(s) {
 function skeletonList(n) {
     return Array.from({ length: n }, () => `
         <div class="skeleton-card">
-            <div class="skeleton skeleton-line" style="width:60%;height:18px"></div>
-            <div class="skeleton skeleton-line" style="width:40%;height:13px"></div>
-            <div class="skeleton skeleton-line" style="width:25%;height:13px"></div>
+            <div class="skeleton-line" style="width:60%"></div>
+            <div class="skeleton-line" style="width:40%"></div>
+            <div class="skeleton-line" style="width:80%"></div>
+            <div class="skeleton-line" style="width:50%"></div>
         </div>`).join('');
 }
 
