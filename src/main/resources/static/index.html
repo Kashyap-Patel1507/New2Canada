@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>New2Canada | Find Your Home</title>
+<title>New2Canada | One search, everything</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="/js/tailwind-config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -11,21 +11,21 @@
 <link rel="stylesheet" href="/css/stitch.css">
 </head>
 <body class="bg-background text-on-surface font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+
 <!-- TopNavBar -->
 <header class="bg-surface shadow-sm sticky top-0 z-50 transition-all duration-300">
 <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
 <div class="flex items-center gap-8">
 <a class="font-headline-md text-headline-md font-bold text-primary tracking-tight" href="/">New2Canada</a>
 <nav class="hidden md:flex items-center gap-6">
-<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 transition-all duration-200" href="/apartments.html">Apartments</a>
-<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="/history.html">History</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#apartments">Apartments</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#autocomplete">Autocomplete</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#spellcheck">Spell Check</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#validate">Validate</a>
 </nav>
 </div>
 <div class="flex items-center gap-4">
 <span id="authBox"></span>
-<button class="md:hidden text-on-surface" aria-label="Menu">
-<span class="material-symbols-outlined">menu</span>
-</button>
 </div>
 </div>
 </header>
@@ -33,192 +33,153 @@
 <div id="demoBanner" class="hidden bg-amber-50 border-b border-amber-200 text-amber-800 text-center text-body-sm py-3 px-margin-mobile"></div>
 
 <main>
-<!-- Hero Section -->
-<section class="relative overflow-hidden hero-pattern pt-16 pb-24 md:pt-24 md:pb-32">
+<!-- Hero + master search -->
+<section class="relative overflow-hidden hero-pattern pt-14 pb-16 md:pt-20 md:pb-20">
 <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
-<div class="flex flex-col md:flex-row items-center gap-12">
-<div class="w-full md:w-3/5 text-center md:text-left">
-<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-6">
-    Land in Canada. <br/>
-    <span class="text-primary-container">Find your apartment</span> in one search.
+<div class="text-center max-w-3xl mx-auto">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-5">
+    One search. <span class="text-primary-container">Every tool.</span>
 </h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant mb-10 max-w-xl mx-auto md:mx-0">
-    Specifically designed for students and newcomers. Simplify your transition with verified listings and smart search tools.
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8 mx-auto">
+    Type once below — it runs the apartment search, autocomplete, spell check and validator all at once.
+    Each tool underneath also has its own box if you want to run it by hand.
 </p>
-<!-- Search Box -->
-<form id="heroSearch" class="relative max-w-2xl group" autocomplete="off">
+<!-- Master search box -->
+<form id="masterForm" class="relative max-w-2xl mx-auto group" autocomplete="off">
 <div class="autocomplete-wrap flex items-center bg-surface-container-lowest rounded-full p-2 shadow-xl ring-1 ring-outline-variant focus-within:ring-primary-container transition-all duration-300">
 <span class="material-symbols-outlined text-outline ml-4">search</span>
-<input autocomplete="off" class="w-full bg-transparent border-none focus:ring-0 px-4 py-3 font-body-md text-on-surface" id="heroQ" placeholder="Try: 2 bedroom toronto..." type="text"/>
+<input autocomplete="off" class="w-full bg-transparent border-none focus:ring-0 px-4 py-3 font-body-md text-on-surface" id="masterQ" placeholder="Try: 2 bedroom toronto…" type="text"/>
 <button type="submit" class="bg-primary text-on-primary px-8 py-3 rounded-full font-label-md text-label-md hover:bg-primary-container transition-colors duration-200 shadow-md">Search</button>
 </div>
-<!-- Autocomplete Dropdown -->
-<div class="hidden absolute top-full left-0 right-0 mt-3 bg-surface-container-lowest rounded-xl shadow-2xl ring-1 ring-outline-variant overflow-hidden z-20" id="heroAc">
-</div>
+<div class="hidden absolute top-full left-0 right-0 mt-3 bg-surface-container-lowest rounded-xl shadow-2xl ring-1 ring-outline-variant overflow-hidden z-20" id="masterAc"></div>
 </form>
-<!-- Quick Search Chip -->
-<div class="flex flex-wrap gap-2 mt-6 justify-center md:justify-start">
-<span class="text-label-sm font-label-sm text-on-surface-variant self-center mr-2">Quick search:</span>
-<a href="/apartments.html?q=2+bedroom+Toronto" class="flex items-center gap-1.5 px-4 py-1.5 bg-surface-container rounded-full border border-outline-variant text-label-sm font-label-sm text-on-surface-variant hover:bg-primary-fixed hover:text-on-primary-fixed transition-all duration-200">
-<span class="material-symbols-outlined text-[16px]">trending_up</span>
-2 bedroom Toronto
-</a>
-</div>
-</div>
-<div class="hidden md:block w-2/5">
-<div class="relative">
-<div class="absolute -top-12 -left-12 w-64 h-64 bg-secondary-container opacity-20 rounded-full blur-3xl animate-pulse"></div>
-<img alt="Modern Toronto apartment building" class="rounded-[32px] shadow-2xl relative z-10 ring-8 ring-white/30 animate-float" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB534Mqgka8STTaDhjQ52C82DNpJLN9JkYZjx0x6e3hi6Idhg34mmNGD_fU5m54iMVH-eyQLzhWQSlr2XSttwmFaYv67SYrGJt92s0FkFAnT3uMSnsocwgs6P3_NOYXI331XYq-IoYMnZTF5qywJe-o8cwBcPd6otSGQ7nWj5-v1X9aERvvod23xQ47GXCfkbKVzE395Mqs41EXvdobxFZfzo-qxjav7HMplHWjE812SxAoj6w3OBi1_BY8M7a3GKP5p4_S30Bzsg"/>
-</div>
+<div class="flex flex-wrap gap-2 mt-6 justify-center">
+<span class="text-label-sm font-label-sm text-on-surface-variant self-center mr-1">Quick search:</span>
+<button type="button" data-quick="2 bedroom Toronto" class="quick-chip flex items-center gap-1.5 px-4 py-1.5 bg-surface-container rounded-full border border-outline-variant text-label-sm font-label-sm text-on-surface-variant hover:bg-primary-fixed hover:text-on-primary-fixed transition-all duration-200">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>2 bedroom Toronto</button>
+<button type="button" data-quick="Vancouver apartment" class="quick-chip flex items-center gap-1.5 px-4 py-1.5 bg-surface-container rounded-full border border-outline-variant text-label-sm font-label-sm text-on-surface-variant hover:bg-primary-fixed hover:text-on-primary-fixed transition-all duration-200">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>Vancouver apartment</button>
 </div>
 </div>
 </div>
 </section>
 
-<!-- Stats Strip -->
+<!-- Stats strip -->
 <section class="bg-surface-container-low border-y border-outline-variant/30">
 <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-6">
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-4 items-center">
-<div class="flex items-center gap-4 group cursor-default">
-<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
-<span class="material-symbols-outlined text-primary text-[20px]">description</span>
-</div>
-<div>
-<p class="text-label-md font-label-md text-on-surface" id="statDocs">—</p>
-<p class="text-label-sm font-label-sm text-on-surface-variant">Documents indexed</p>
-</div>
-</div>
-<div class="flex items-center gap-4 group cursor-default">
-<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center group-hover:scale-110 transition-transform">
-<span class="material-symbols-outlined text-on-secondary-container text-[20px]">account_tree</span>
-</div>
-<div>
-<p class="text-label-md font-label-md text-on-surface" id="statTerms">—</p>
-<p class="text-label-sm font-label-sm text-on-surface-variant">Autocomplete trie size</p>
-</div>
-</div>
-<div class="flex items-center gap-4 group cursor-default">
-<div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
-<span class="material-symbols-outlined text-tertiary text-[20px]">menu_book</span>
-</div>
-<div>
-<p class="text-label-md font-label-md text-on-surface" id="statDict">—</p>
-<p class="text-label-sm font-label-sm text-on-surface-variant">Dictionary size</p>
-</div>
-</div>
-<div class="flex items-center gap-4 group cursor-default">
-<div class="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center group-hover:scale-110 transition-transform">
-<span class="material-symbols-outlined text-on-primary-fixed text-[20px]">travel_explore</span>
-</div>
-<div>
-<p class="text-label-md font-label-md text-on-surface" id="statQueries">—</p>
-<p class="text-label-sm font-label-sm text-on-surface-variant">Searches served</p>
-</div>
-</div>
+<div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[20px]">description</span></div><div><p class="text-label-md font-label-md text-on-surface" id="statDocs">—</p><p class="text-label-sm font-label-sm text-on-surface-variant">Documents indexed</p></div></div>
+<div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary-container text-[20px]">account_tree</span></div><div><p class="text-label-md font-label-md text-on-surface" id="statTerms">—</p><p class="text-label-sm font-label-sm text-on-surface-variant">Autocomplete trie size</p></div></div>
+<div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center"><span class="material-symbols-outlined text-tertiary text-[20px]">menu_book</span></div><div><p class="text-label-md font-label-md text-on-surface" id="statDict">—</p><p class="text-label-sm font-label-sm text-on-surface-variant">Dictionary size</p></div></div>
+<div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center"><span class="material-symbols-outlined text-on-primary-fixed text-[20px]">travel_explore</span></div><div><p class="text-label-md font-label-md text-on-surface" id="statQueries">—</p><p class="text-label-sm font-label-sm text-on-surface-variant">Searches served</p></div></div>
 </div>
 </div>
 </section>
 
-<!-- Browse Section (Bento Grid) -->
-<section class="py-24 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
-<h2 class="font-headline-md text-headline-md text-on-surface mb-12">Browse</h2>
-<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
-<!-- Main Listing Card -->
-<a class="md:col-span-8 group relative rounded-[24px] overflow-hidden bg-surface-container h-[420px] shadow-sm hover:shadow-xl transition-all duration-500" href="/apartments.html">
-<img alt="Bright modern Canadian apartment interior" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJEVwKntH5A3d6RtU5BVHKqrWQARgeguL3lYtHoiNLBWEFEe2muLmnU2e5EwJ_-B9lQbQX1EdHoPu1Q9t-Sp7hERYvKjrf-SneCnLpYQvv-tFf8NLYmLmSaruFH88wOP_OoYrSNriRed5ssnHLhPEgDx-Ey9StHHntLAuKWczfyjxHGTSCSm1JUjowJ7DNZ85hABMthbF500J540TP3lAdQ0B3CUEq7WDCvXNdexDZggj0kjeYyZD2A5SugI47flMYaqOQXZxC2A"/>
-<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-transparent to-transparent"></div>
-<div class="absolute bottom-0 left-0 p-8">
-<span class="inline-block bg-primary text-on-primary px-4 py-1.5 rounded-full text-label-sm font-label-sm mb-4">Browse</span>
-<h3 class="font-headline-md text-headline-md text-white mb-2">Apartments</h3>
-<p class="text-white/80 font-body-sm text-body-sm max-w-md">Find verified rental listings tailored for newcomers and students across major Canadian cities.</p>
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-14 space-y-10">
+
+<!-- ============ APARTMENTS ============ -->
+<section id="apartments" class="scroll-mt-24 bg-surface-container-lowest rounded-[24px] shadow-sm border border-outline-variant/30 p-6 md:p-10">
+<div class="flex items-center gap-3 mb-6">
+<span class="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center"><span class="material-symbols-outlined text-primary">apartment</span></span>
+<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Apartments</h2><p class="text-body-sm text-on-surface-variant">Inverted-index search · TF·IDF + PageRank ranking · merge sort</p></div>
 </div>
-</a>
-<!-- Tool Grid -->
-<div class="md:col-span-4 grid grid-cols-1 gap-gutter">
-<a class="bg-surface-container-highest rounded-[24px] p-8 group hover:bg-primary transition-all duration-300" href="/autocomplete.html">
-<div class="w-12 h-12 bg-surface-container-lowest rounded-xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
-<span class="material-symbols-outlined text-primary">text_fields</span>
+<form id="aptForm" class="relative" autocomplete="off">
+<div class="flex flex-col md:flex-row gap-3 md:items-center">
+<div class="autocomplete-wrap flex items-center flex-1 bg-surface-container rounded-full px-4 py-1 ring-1 ring-outline-variant focus-within:ring-primary-container">
+<span class="material-symbols-outlined text-outline">search</span>
+<input autocomplete="off" id="aptQ" type="text" placeholder="Search apartments manually…" class="w-full bg-transparent border-none focus:ring-0 px-3 py-2.5 text-on-surface"/>
 </div>
-<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-white mb-2">Autocomplete</h3>
-<p class="text-on-surface-variant group-hover:text-white/80 text-body-sm">Blazing fast city and address suggestions.</p>
-</a>
-<a class="bg-surface-container-high rounded-[24px] p-8 group hover:bg-secondary transition-all duration-300" href="/spellcheck.html">
-<div class="w-12 h-12 bg-surface-container-lowest rounded-xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
-<span class="material-symbols-outlined text-secondary">spellcheck</span>
+<select id="provinceFilter" class="rounded-full border-outline-variant bg-surface-container text-on-surface text-label-md py-2.5 px-4"><option value="">Any province</option></select>
+<select id="cityFilter" disabled class="rounded-full border-outline-variant bg-surface-container text-on-surface text-label-md py-2.5 px-4"><option value="">Select a province first</option></select>
+<button type="submit" class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label-md text-label-md hover:bg-primary-container transition-colors">Search</button>
+<button type="button" id="topBtn" class="bg-surface-container-high text-on-surface px-4 py-2.5 rounded-full font-label-md text-label-md hover:bg-surface-container-highest transition-colors" title="Top-ranked listings">Top picks</button>
+<button type="button" id="clearFilters" class="text-on-surface-variant hover:text-primary text-label-md px-2" title="Clear filters">Clear</button>
 </div>
-<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-white mb-2">Spell Check</h3>
-<p class="text-on-surface-variant group-hover:text-white/80 text-body-sm">Smart correction for Canadian street names.</p>
-</a>
-</div>
-<!-- Bottom Row Bento -->
-<a class="md:col-span-6 bg-surface-bright border border-outline-variant/30 rounded-[24px] p-10 flex items-center justify-between group hover:shadow-lg transition-all duration-300" href="/validate.html">
-<div>
-<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Validate</h3>
-<p class="text-on-surface-variant text-body-sm max-w-[280px]">Check Canadian postal codes, emails, phone numbers and SINs in seconds.</p>
-</div>
-<div class="w-20 h-20 bg-tertiary-fixed/30 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform">
-<span class="material-symbols-outlined text-tertiary text-4xl" style="font-variation-settings: 'FILL' 1;">verified</span>
-</div>
-</a>
-<a class="md:col-span-6 bg-surface-container-low border border-outline-variant/30 rounded-[24px] p-10 flex items-center justify-between group hover:shadow-lg transition-all duration-300" href="/history.html">
-<div>
-<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Search History</h3>
-<p class="text-on-surface-variant text-body-sm max-w-[280px]">Pick up exactly where you left off with synchronized search logs.</p>
-</div>
-<div class="w-20 h-20 bg-secondary-fixed/30 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform">
-<span class="material-symbols-outlined text-on-secondary-fixed-variant text-4xl">history</span>
-</div>
-</a>
-</div>
+<div class="hidden absolute left-0 right-0 mt-2 bg-surface-container-lowest rounded-xl shadow-2xl ring-1 ring-outline-variant overflow-hidden z-20" id="aptAcList"></div>
+</form>
+<p class="text-body-sm text-on-surface-variant mt-4" id="aptCount"></p>
+<div id="aptDym" class="mt-2"></div>
+<div id="aptResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter mt-4"></div>
 </section>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+<!-- ============ AUTOCOMPLETE ============ -->
+<section id="autocomplete" class="scroll-mt-24 bg-surface-container-lowest rounded-[24px] shadow-sm border border-outline-variant/30 p-6 md:p-8">
+<div class="flex items-center gap-3 mb-5">
+<span class="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary-container">text_fields</span></span>
+<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Autocomplete</h2><p class="text-body-sm text-on-surface-variant">Trie + top-k min-heap</p></div>
+</div>
+<form id="acForm" autocomplete="off">
+<div class="flex items-center bg-surface-container rounded-full px-4 py-1 ring-1 ring-outline-variant focus-within:ring-primary-container">
+<span class="material-symbols-outlined text-outline">keyboard</span>
+<input autocomplete="off" id="acInput" type="text" placeholder="Type a prefix…" class="w-full bg-transparent border-none focus:ring-0 px-3 py-2.5 text-on-surface"/>
+</div>
+</form>
+<ul id="acResults" class="mt-4 space-y-1 text-body-md text-on-surface"><li class="text-on-surface-variant text-body-sm">Suggestions appear as you type.</li></ul>
+</section>
+
+<!-- ============ SPELL CHECK ============ -->
+<section id="spellcheck" class="scroll-mt-24 bg-surface-container-lowest rounded-[24px] shadow-sm border border-outline-variant/30 p-6 md:p-8">
+<div class="flex items-center gap-3 mb-5">
+<span class="w-10 h-10 rounded-xl bg-tertiary-fixed flex items-center justify-center"><span class="material-symbols-outlined text-tertiary">spellcheck</span></span>
+<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Spell Check</h2><p class="text-body-sm text-on-surface-variant">Levenshtein edit distance</p></div>
+</div>
+<form id="spellForm" autocomplete="off" class="flex gap-2">
+<div class="flex items-center flex-1 bg-surface-container rounded-full px-4 py-1 ring-1 ring-outline-variant focus-within:ring-primary-container">
+<span class="material-symbols-outlined text-outline">edit</span>
+<input autocomplete="off" id="spellInput" type="text" placeholder="Check a word…" class="w-full bg-transparent border-none focus:ring-0 px-3 py-2.5 text-on-surface"/>
+</div>
+<button type="submit" class="bg-primary text-on-primary px-5 py-2.5 rounded-full font-label-md text-label-md hover:bg-primary-container transition-colors">Check</button>
+</form>
+<div id="spellOut" class="mt-4"></div>
+</section>
+
+<!-- ============ VALIDATE ============ -->
+<section id="validate" class="scroll-mt-24 bg-surface-container-lowest rounded-[24px] shadow-sm border border-outline-variant/30 p-6 md:p-8">
+<div class="flex items-center gap-3 mb-5">
+<span class="w-10 h-10 rounded-xl bg-primary-fixed-dim flex items-center justify-center"><span class="material-symbols-outlined text-on-primary-fixed" style="font-variation-settings:'FILL' 1;">verified</span></span>
+<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Validate</h2><p class="text-body-sm text-on-surface-variant">Regex · postal · email · phone · SIN</p></div>
+</div>
+<form id="valForm" autocomplete="off" class="space-y-2">
+<select id="valType" class="w-full rounded-full border-outline-variant bg-surface-container text-on-surface text-label-md py-2.5 px-4">
+<option value="postal">Postal code</option>
+<option value="email">Email</option>
+<option value="phone">Phone</option>
+<option value="sin">SIN</option>
+</select>
+<div class="flex gap-2">
+<div class="flex items-center flex-1 bg-surface-container rounded-full px-4 py-1 ring-1 ring-outline-variant focus-within:ring-primary-container">
+<span class="material-symbols-outlined text-outline">fact_check</span>
+<input autocomplete="off" id="valInput" type="text" placeholder="Value to validate…" class="w-full bg-transparent border-none focus:ring-0 px-3 py-2.5 text-on-surface"/>
+</div>
+<button type="submit" class="bg-primary text-on-primary px-5 py-2.5 rounded-full font-label-md text-label-md hover:bg-primary-container transition-colors">Check</button>
+</div>
+</form>
+<div id="valOut" class="mt-4"></div>
+</section>
+
+</div>
+</div>
 </main>
 
-<!-- Footer -->
 <footer class="bg-surface-container-low border-t border-outline-variant">
-<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
-<div class="col-span-2 md:col-span-1">
-<div class="font-headline-sm text-headline-sm font-bold text-on-surface mb-4">New2Canada</div>
-<p class="text-on-surface-variant font-body-sm text-body-sm mb-6 max-w-xs">Helping newcomers find home with clarity, reliability, and modern tools.</p>
-</div>
-<div>
-<h4 class="font-label-md text-label-md text-primary mb-4">Tools</h4>
-<nav class="flex flex-col gap-2">
-<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary transition-colors duration-200" href="/autocomplete.html">Autocomplete</a>
-<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary transition-colors duration-200" href="/spellcheck.html">Spell Check</a>
-<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary transition-colors duration-200" href="/validate.html">Validate</a>
-<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary transition-colors duration-200" href="/history.html">Search History</a>
-</nav>
-</div>
-<div>
-<h4 class="font-label-md text-label-md text-primary mb-4">Account</h4>
-<nav class="flex flex-col gap-2">
-<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary transition-colors duration-200" href="/apartments.html">Apartments</a>
-<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-secondary transition-colors duration-200" href="/login.html">Sign in</a>
-</nav>
-</div>
-<div class="col-span-2 md:col-span-1">
-<p class="text-on-surface-variant font-body-sm text-body-sm mt-8 md:mt-0">COMP 8547 · Advanced Computing Concepts · University of Windsor</p>
-</div>
+<div class="px-margin-mobile md:px-margin-desktop py-10 max-w-container-max mx-auto text-center">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface mb-2">New2Canada</div>
+<p class="text-on-surface-variant font-body-sm text-body-sm">COMP 8547 · Advanced Computing Concepts · University of Windsor</p>
 </div>
 </footer>
 
 <script>
-    // Scroll shadow for header
-    window.addEventListener('scroll', () => {
-        const header = document.querySelector('header');
-        if (window.scrollY > 20) {
-            header.classList.add('shadow-md');
-            header.classList.add('py-2');
-            header.classList.remove('py-4');
-        } else {
-            header.classList.remove('shadow-md');
-            header.classList.add('py-4');
-            header.classList.remove('py-2');
-        }
-    });
+window.addEventListener('scroll', () => {
+    const header = document.querySelector('header');
+    if (window.scrollY > 20) { header.classList.add('shadow-md','py-2'); header.classList.remove('py-4'); }
+    else { header.classList.remove('shadow-md','py-2'); header.classList.add('py-4'); }
+});
 </script>
 <script src="/js/auth.js"></script>
 <script src="/js/app.js"></script>
-<script src="/js/pages/home.js"></script>
+<script src="/js/pages/single.js"></script>
 </body>
 </html>
