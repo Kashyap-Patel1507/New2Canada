@@ -16,11 +16,20 @@ import static com.new2canada.parser.rentals.RentalExtractorUtils.*;
  *
  * <p>Same JS-rendered, no-stable-card-class situation as Zumper (same parent
  * company) — find listing-detail links and scrape the surrounding card text.
+ *
+ * <p>The card markup is Tailwind utility classes only, so there is nothing
+ * stable to select on; the {@code /buildings/} detail links are the reliable
+ * hook. Note the listing grid only renders once the page's WebGL map
+ * initialises — see the SwiftShader flags in {@link
+ * com.new2canada.crawler.PoliteFetcher}.
  */
 public class PadMapperExtractor implements RentalExtractor {
 
-    private static final Pattern LISTING_HREF =
-            Pattern.compile("^/apartments/[^/]+/[^/]+/[^/]+");
+    /** Listing-detail links, e.g. /buildings/p217502/forest-ridge-apartments-at-2380-baseline-rd. */
+    private static final Pattern LISTING_HREF = Pattern.compile("^/buildings/");
+
+    /** Ancestor levels from the detail link up to the element holding the whole card. */
+    private static final int CARD_DEPTH = 6;
 
     @Override
     public boolean supports(String url) {
@@ -28,12 +37,17 @@ public class PadMapperExtractor implements RentalExtractor {
     }
 
     @Override
+    public String readySelector() { return "a[href^='/buildings/']"; }
+
+    @Override
     public List<Apartment> extract(Document doc, String url) {
         List<Apartment> out = new ArrayList<>();
-        for (Element card : cardsByAnchor(doc, LISTING_HREF, 3)) {
+        for (Element card : cardsByAnchor(doc, LISTING_HREF, CARD_DEPTH)) {
             String text = card.text();
-            String href = firstAttr(card, "a[href]", "href", doc.baseUri());
-            String title = firstTextChain(card, "Apartment listing", "h2, h3, h4, [class*=title]");
+            String href = firstAttr(card, "a[href^=/buildings/]", "href", doc.baseUri());
+            String title = firstTextChain(card, "Apartment listing",
+                    "a[href^=/buildings/]", "h2, h3, h4, [class*=title]");
+            // "$1,552–$2,599" for a range — priceFromText takes the low end.
             double rent = priceFromText(text);
             int bedrooms = inferBedrooms(text);
             String address = streetAddress(text);

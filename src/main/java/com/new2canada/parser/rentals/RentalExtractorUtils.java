@@ -55,8 +55,10 @@ public final class RentalExtractorUtils {
         catch (Exception e) { return href; }
     }
 
+    // "bd"/"bds" are ViewIt's spelling ("1 bd", "2 bds"); without them those
+    // listings silently fall through to the 1-bedroom default below.
     private static final Pattern BEDROOM_PATTERN =
-            Pattern.compile("(\\d+)\\s*(?:br|bed|beds|bedroom|bedrooms)\\b", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("(\\d+)\\s*(?:br|bd|bds|bed|beds|bedroom|bedrooms)\\b", Pattern.CASE_INSENSITIVE);
 
     /** Defaults to 1 bedroom; recognises "studio"/"bachelor" as 0. */
     public static int inferBedrooms(String text) {
@@ -71,8 +73,19 @@ public final class RentalExtractorUtils {
         return 1;
     }
 
+    /**
+     * Digit-grouping separator used by French-locale pages (Craigslist Montreal
+     * serves "$1 850" with a non-breaking or narrow no-break space). Java's
+     * {@code \s} doesn't cover U+00A0/U+202F, so the price regex would stop at
+     * the "1" and read $1 850 as $1 — we strip the separator first.
+     */
+    private static final Pattern GROUPING_SPACE =
+            Pattern.compile("(?<=\\d)[\\u00a0\\u202f\\u2009 ](?=\\d{3}(?!\\d))");
+
     public static double priceFromText(String text) {
-        return PatternFinder.firstPriceAsNumber(text, 0.0);
+        if (text == null) return 0.0;
+        return PatternFinder.firstPriceAsNumber(
+                GROUPING_SPACE.matcher(text).replaceAll(""), 0.0);
     }
 
     /**

@@ -27,4 +27,9 @@ public class DataExtractor {
         if (doc == null) return new ArrayList<>();
         return rentalExtractors.extract(doc, doc.baseUri());
     }
+
+    /** CSS selector the fetcher should wait for before scraping {@code url}, or null. */
+    public String readySelectorFor(String url) {
+        return rentalExtractors.readySelectorFor(url);
+    }
 }

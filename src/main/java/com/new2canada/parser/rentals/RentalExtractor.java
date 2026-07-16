@@ -23,4 +23,16 @@ public interface RentalExtractor {
 
     /** Pulls all apartment listings out of {@code doc}. Never returns null. */
     List<Apartment> extract(Document doc, String url);
+
+    /**
+     * CSS selector that only appears once this site's listings have rendered,
+     * or {@code null} if the seed page is server-rendered and needs no wait.
+     *
+     * <p>The JS-rendered sites populate their grid well after {@code load}
+     * fires, and they don't all take the same amount of time — a single fixed
+     * sleep in the fetcher is either too short (we scrape an empty grid) or
+     * wastes seconds on every other site. Each extractor knows its own DOM, so
+     * it names the element the fetcher should wait for.
+     */
+    default String readySelector() { return null; }
 }

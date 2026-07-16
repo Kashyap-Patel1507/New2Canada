@@ -4,10 +4,16 @@ import com.new2canada.config.AppConfig;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.openqa.selenium.By;
+import org.openqa.selenium.PageLoadStrategy;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,25 +57,58 @@ public class PoliteFetcher implements AutoCloseable {
         ChromeOptions options = new ChromeOptions();
         options.addArguments(
                 "--headless=new",
-                "--disable-gpu",
+                // NOT --disable-gpu: 4Rent and PadMapper build a WebGL map on
+                // page load, and with no WebGL context the map constructor
+                // throws an uncaught error that aborts the site's JS before it
+                // ever fetches listings (the list sits at "Loading..." forever).
+                // SwiftShader gives headless Chrome a software WebGL context.
+                "--use-gl=angle",
+                "--use-angle=swiftshader",
+                "--enable-unsafe-swiftshader",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--window-size=1920,1080",
                 "user-agent=" + AppConfig.USER_AGENT);
+        // EAGER returns once the DOM is parsed instead of waiting for every last
+        // subresource. The map sites stream tiles indefinitely, so waiting for
+        // full "load" made driver.get() throw a renderer timeout and discard a
+        // page whose listings had in fact already rendered. We wait for the
+        // listings themselves (readySelector) rather than for the network.
+        options.setPageLoadStrategy(PageLoadStrategy.EAGER);
         WebDriver d = new ChromeDriver(options);
-        d.manage().timeouts().pageLoadTimeout(java.time.Duration.ofSeconds(20));
+        d.manage().timeouts().pageLoadTimeout(
+                java.time.Duration.ofMillis(AppConfig.PAGE_LOAD_TIMEOUT_MS));
         return d;
     }
 
     /** Fetches the URL as a parsed Jsoup {@link Document}, or {@code null} on failure. */
     public synchronized Document fetch(String url) {
+        return fetch(url, null);
+    }
+
+    /**
+     * Fetches the URL, first waiting (up to {@link AppConfig#RENDER_TIMEOUT_MS})
+     * for {@code readyCss} to appear — pass {@code null} for server-rendered
+     * pages that need no wait. A page whose listings never render still returns
+     * its DOM rather than null, so the caller can fall back to the cache.
+     */
+    public synchronized Document fetch(String url, String readyCss) {
         if (url == null || url.isBlank()) return null;
         try {
             throttleSameHost(url);
             driver.get(url);
-            // Give client-side rendered listings (Zumper, PadMapper, Liv.rent, ...)
-            // a moment to populate the DOM after the initial page load.
-            Thread.sleep(2000);
+            if (readyCss != null && !readyCss.isBlank()) {
+                try {
+                    new WebDriverWait(driver, Duration.ofMillis(AppConfig.RENDER_TIMEOUT_MS))
+                            .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(readyCss)));
+                } catch (TimeoutException e) {
+                    System.err.println("PoliteFetcher: " + url + " -> listings ("
+                            + readyCss + ") never rendered; scraping anyway");
+                }
+            } else {
+                // Server-rendered page: a short settle is enough.
+                Thread.sleep(2000);
+            }
             String html = driver.getPageSource();
             recordFetch(url);
             return Jsoup.parse(html, url);

@@ -36,6 +36,11 @@ public class HousingCrawler extends WebCrawler {
     }
 
     @Override
+    protected String readySelector(String url) {
+        return extractor.readySelectorFor(url);
+    }
+
+    @Override
     protected void handle(Document doc) {
         String source = sourceOf(doc.baseUri());
         int count = 0;

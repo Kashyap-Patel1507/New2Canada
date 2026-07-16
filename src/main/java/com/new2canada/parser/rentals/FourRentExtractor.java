@@ -13,9 +13,14 @@ import static com.new2canada.parser.rentals.RentalExtractorUtils.*;
  * 4Rent.ca Edmonton apartments search
  * ({@code https://4rent.ca/apartments-for-rent/ab/edmonton/3352}).
  *
- * <p>Vue-rendered results grid with no documented stable card class — fall
- * back to {@link RentalExtractorUtils#genericPriceCards} over likely
- * selectors.
+ * <p>Nuxt/Vue-rendered results grid. Each listing is a
+ * {@code div.property-result}; the surrounding layout is Tailwind utilities
+ * but the card, its {@code .result-info} body and the title link carry stable
+ * names.
+ *
+ * <p>The grid only populates once the page's WebGL map initialises — see the
+ * SwiftShader flags in {@link com.new2canada.crawler.PoliteFetcher}. Without
+ * them the list sits at "Loading..." and this extractor sees nothing.
  */
 public class FourRentExtractor implements RentalExtractor {
 
@@ -25,19 +30,24 @@ public class FourRentExtractor implements RentalExtractor {
     }
 
     @Override
+    public String readySelector() { return "div.property-result"; }
+
+    @Override
     public List<Apartment> extract(Document doc, String url) {
         List<Apartment> out = new ArrayList<>();
-        List<Element> cards = genericPriceCards(doc,
-                "[class*=listing-card]", "[class*=property-card]", "[class*=result-card]",
-                "[class*=listing-item]", "[class*=rental-item]", "li[class*=result]", "article");
-
-        for (Element card : cards) {
+        for (Element card : doc.select("div.property-result")) {
             String text = card.text();
-            String href = firstAttr(card, "a[href]", "href", doc.baseUri());
-            String title = firstTextChain(card, "Apartment listing", "h2, h3, h4, [class*=title], [class*=address]");
+            String href = firstAttr(card, "a[href^=/apartment-for-rent/]", "href", doc.baseUri());
+            String title = firstTextChain(card, "Apartment listing",
+                    "a.text-teal-blue", "a[href^=/apartment-for-rent/]", "h2, h3, h4");
+            // "$1,070+" — the card's first price is the starting rent.
             double rent = priceFromText(text);
-            int bedrooms = inferBedrooms(text);
-            String address = streetAddress(text);
+            // Bed/bath sit in their own list items ("0 Beds", "1 Bath"); read the
+            // beds one directly so "1 Bath" can't be mistaken for a bedroom count.
+            int bedrooms = inferBedrooms(firstTextChain(card, "", "li:contains(Bed)"));
+            // The city line also carries .text-bluish-grey, so exclude the bold one.
+            String address = firstTextChain(card, "", "div.text-bluish-grey:not(.font-bold)");
+            if (address.isEmpty()) address = streetAddress(text);
             if (address.isEmpty()) address = title.equals("Apartment listing") ? "Edmonton, AB" : title;
 
             out.add(new Apartment(idFromUrl("4rent", href, title), title, address,

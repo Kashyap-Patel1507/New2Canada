@@ -11,11 +11,16 @@ import static com.new2canada.parser.rentals.RentalExtractorUtils.*;
 
 /**
  * ViewIt Toronto rentals search
- * ({@code https://www.viewit.ca/rentals/toronto?cid=14}).
+ * ({@code https://www.viewit.ca/Listings?cid=14}).
  *
- * <p>Angular SPA with no documented stable card class — fall back to
- * {@link RentalExtractorUtils#genericPriceCards} over a few likely
- * selectors.
+ * <p>Note the seed is {@code /Listings}, not {@code /rentals/toronto} — the
+ * latter is a city landing page whose only listings are five "featured" promo
+ * tiles. {@code /Listings?cid=14} is the real search-results page, where each
+ * hit is an {@code article.resultListing}.
+ *
+ * <p>ViewIt is ASP.NET WebForms and shows 5 results per page, with pagination
+ * driven by {@code __doPostBack} rather than URLs — so there is no page-2 URL
+ * to seed, and we take the first page only.
  */
 public class ViewItExtractor implements RentalExtractor {
 
@@ -25,17 +30,18 @@ public class ViewItExtractor implements RentalExtractor {
     }
 
     @Override
+    public String readySelector() { return "article.resultListing"; }
+
+    @Override
     public List<Apartment> extract(Document doc, String url) {
         List<Apartment> out = new ArrayList<>();
-        List<Element> cards = genericPriceCards(doc,
-                "[class*=listing-card]", "[class*=property-card]", "[class*=rental-card]",
-                "app-listing-card", "app-property-card", "[class*=listing-item]", "li[class*=result]");
-
-        for (Element card : cards) {
+        for (Element card : doc.select("article.resultListing")) {
             String text = card.text();
             String href = firstAttr(card, "a[href]", "href", doc.baseUri());
-            String title = firstTextChain(card, "Apartment listing", "h2, h3, h4, [class*=title], [class*=address]");
-            double rent = priceFromText(text);
+            // The h5 is the street address, which doubles as the listing title.
+            String title = firstTextChain(card, "Apartment listing", "h5", "h2, h3, h4");
+            // "$1850 and up" — priceFromText takes the starting rent.
+            double rent = priceFromText(firstTextChain(card, "", "div.resultListing-price"));
             int bedrooms = inferBedrooms(text);
             String address = streetAddress(text);
             if (address.isEmpty()) address = title.equals("Apartment listing") ? "Toronto, ON" : title;

@@ -22,6 +22,21 @@ public final class AppConfig {
     /** Polite delay between live HTTP requests, in milliseconds. */
     public static final long FETCH_DELAY_MS = 1500L;
 
+    /**
+     * How long to wait for a JS-rendered listings grid to appear before
+     * giving up on that seed. The map-based sites (4Rent, PadMapper) build a
+     * WebGL map first and only then fetch listings, so they routinely need
+     * more than a couple of seconds.
+     */
+    public static final long RENDER_TIMEOUT_MS = 30_000L;
+
+    /**
+     * Cap on the initial page load. Generous because the software-WebGL map
+     * sites are slow to parse; the crawler spends most of its wait in
+     * {@link #RENDER_TIMEOUT_MS} instead, waiting for listings specifically.
+     */
+    public static final long PAGE_LOAD_TIMEOUT_MS = 45_000L;
+
     /** User-Agent the crawler announces itself with. */
     public static final String USER_AGENT =
             "New2Canada-StudentProject/1.0 (+https://example.edu COMP8547)";
@@ -52,7 +67,9 @@ public final class AppConfig {
             "https://montreal.craigslist.org/search/apa",
             "https://www.zumper.com/apartments-for-rent/calgary-ab",
             "https://www.padmapper.com/apartments/ottawa-on",
-            "https://www.viewit.ca/rentals/toronto?cid=14",
+            // /Listings, not /rentals/toronto: the latter is a landing page whose
+            // only listings are five featured promo tiles.
+            "https://www.viewit.ca/Listings?cid=14",
             "https://4rent.ca/apartments-for-rent/ab/edmonton/3352",
             "https://www.rentseeker.ca/rentals/apartments/manitoba/winnipeg",
             "https://www.realtor.ca/on/waterloo/rentals",

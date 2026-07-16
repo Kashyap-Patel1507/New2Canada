@@ -51,6 +51,12 @@ public abstract class WebCrawler {
     /** Each subclass turns a parsed page into typed objects + persists them. */
     protected abstract void handle(Document doc);
 
+    /**
+     * CSS selector the fetcher should wait for before scraping {@code url}.
+     * Defaults to no wait; subclasses override when their pages render late.
+     */
+    protected String readySelector(String url) { return null; }
+
     /** Runs the BFS crawl. Returns the number of URLs successfully fetched. */
     public int crawl() {
         Queue<String> frontier = new ArrayDeque<>(seeds());
@@ -59,7 +65,7 @@ public abstract class WebCrawler {
             String url = frontier.poll();
             if (url == null || visited.contains(url)) continue;
             visited.add(url);
-            Document doc = fetcher.fetch(url);
+            Document doc = fetcher.fetch(url, readySelector(url));
             if (doc == null) continue;
             handle(doc);
             fetched++;

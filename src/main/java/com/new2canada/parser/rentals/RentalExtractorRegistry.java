@@ -37,4 +37,15 @@ public class RentalExtractorRegistry {
         }
         return new ArrayList<>();
     }
+
+    /**
+     * The {@link RentalExtractor#readySelector()} of whichever extractor handles
+     * {@code url}, or {@code null} if none matches or that site needs no wait.
+     */
+    public String readySelectorFor(String url) {
+        for (RentalExtractor extractor : extractors) {
+            if (extractor.supports(url)) return extractor.readySelector();
+        }
+        return null;
+    }
 }
