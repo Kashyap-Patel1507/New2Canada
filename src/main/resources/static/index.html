@@ -4,6 +4,14 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>New2Canada | One search, everything</title>
+<script>
+    // Always open at the top on load/refresh. Disable the browser's scroll
+    // restoration, and strip any leftover #section hash (e.g. from the old
+    // top-nav links) before the browser jumps to that anchor.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    window.addEventListener('load', function () { window.scrollTo(0, 0); });
+</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="/js/tailwind-config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -17,12 +25,6 @@
 <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
 <div class="flex items-center gap-8">
 <a class="font-headline-md text-headline-md font-bold text-primary tracking-tight" href="/">New2Canada</a>
-<nav class="hidden md:flex items-center gap-6">
-<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#apartments">Apartments</a>
-<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#autocomplete">Autocomplete</a>
-<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#spellcheck">Spell Check</a>
-<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#validate">Validate</a>
-</nav>
 </div>
 <div class="flex items-center gap-4">
 <span id="authBox"></span>
@@ -34,14 +36,14 @@
 
 <main>
 <!-- Hero + master search -->
-<section class="relative overflow-hidden hero-pattern pt-14 pb-16 md:pt-20 md:pb-20">
+<section class="relative hero-pattern pt-14 pb-16 md:pt-20 md:pb-20">
 <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
 <div class="text-center max-w-3xl mx-auto">
 <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-5">
     One search. <span class="text-primary-container">Every tool.</span>
 </h1>
 <p class="font-body-lg text-body-lg text-on-surface-variant mb-8 mx-auto">
-    Type once below — it runs the apartment search, autocomplete, spell check and validator all at once.
+    Type once below it runs the apartment search, autocomplete, spell check and validator all at once.
     Each tool underneath also has its own box if you want to run it by hand.
 </p>
 <!-- Master search box -->
@@ -82,7 +84,7 @@
 <section id="apartments" class="scroll-mt-24 bg-surface-container-lowest rounded-[24px] shadow-sm border border-outline-variant/30 p-6 md:p-10">
 <div class="flex items-center gap-3 mb-6">
 <span class="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center"><span class="material-symbols-outlined text-primary">apartment</span></span>
-<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Apartments</h2><p class="text-body-sm text-on-surface-variant">Inverted-index search · TF·IDF + PageRank ranking · merge sort</p></div>
+<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Apartments</h2></div>
 </div>
 <form id="aptForm" class="relative" autocomplete="off">
 <div class="flex flex-col md:flex-row gap-3 md:items-center">
@@ -109,7 +111,7 @@
 <section id="autocomplete" class="scroll-mt-24 bg-surface-container-lowest rounded-[24px] shadow-sm border border-outline-variant/30 p-6 md:p-8">
 <div class="flex items-center gap-3 mb-5">
 <span class="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary-container">text_fields</span></span>
-<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Autocomplete</h2><p class="text-body-sm text-on-surface-variant">Trie + top-k min-heap</p></div>
+<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Autocomplete</h2></div>
 </div>
 <form id="acForm" autocomplete="off">
 <div class="flex items-center bg-surface-container rounded-full px-4 py-1 ring-1 ring-outline-variant focus-within:ring-primary-container">
@@ -124,7 +126,7 @@
 <section id="spellcheck" class="scroll-mt-24 bg-surface-container-lowest rounded-[24px] shadow-sm border border-outline-variant/30 p-6 md:p-8">
 <div class="flex items-center gap-3 mb-5">
 <span class="w-10 h-10 rounded-xl bg-tertiary-fixed flex items-center justify-center"><span class="material-symbols-outlined text-tertiary">spellcheck</span></span>
-<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Spell Check</h2><p class="text-body-sm text-on-surface-variant">Levenshtein edit distance</p></div>
+<div><h2 class="font-headline-sm text-headline-sm text-on-surface">Spell Check</h2></div>
 </div>
 <form id="spellForm" autocomplete="off" class="flex gap-2">
 <div class="flex items-center flex-1 bg-surface-container rounded-full px-4 py-1 ring-1 ring-outline-variant focus-within:ring-primary-container">

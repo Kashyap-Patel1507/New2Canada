@@ -45,6 +45,27 @@ async function checkDemoBanner() {
 }
 
 // ---- Result card renderer ---------------------------------------------------
+// One distinct colour per crawled source site, as a tonal chip: a soft
+// tinted background with darker same-hue text. Dark-text-on-light-tint keeps
+// every badge readable (WCAG AA) while allowing pleasant hues — gold, cyan,
+// lime — that are too light to work as solid white-on-colour badges. Unknown
+// sources fall back to a neutral slate chip.
+const SOURCE_COLORS = {
+    'kijiji.ca':      { bg: '#E8F5E9', text: '#1B5E20' }, // green
+    'craigslist.org': { bg: '#F3E5F5', text: '#6A1B9A' }, // purple
+    'zumper.com':     { bg: '#FFEBEE', text: '#C62828' }, // red
+    'padmapper.com':  { bg: '#E0F2F1', text: '#00695C' }, // teal
+    'viewit.ca':      { bg: '#E3F2FD', text: '#1565C0' }, // blue
+    '4rent.ca':       { bg: '#FFF3E0', text: '#E65100' }, // orange
+    'rentseeker.ca':  { bg: '#FCE4EC', text: '#AD1457' }, // pink
+    'realtor.ca':     { bg: '#FEF3C7', text: '#B45309' }, // gold
+    'liv.rent':       { bg: '#E0F7FA', text: '#0E7490' }, // cyan
+    'rentola.ca':     { bg: '#F0FDD4', text: '#4D7C0F' }, // lime
+};
+function sourceChip(source) {
+    return SOURCE_COLORS[String(source).toLowerCase()] || { bg: '#F1F5F9', text: '#475569' };
+}
+
 function renderResult(item) {
     const fields = item.fields || {};
     const cityProvince = [fields.city, fields.province].filter(Boolean).map(escape).join(', ');
@@ -64,8 +85,9 @@ function renderResult(item) {
             <span aria-hidden="true">🛏</span><span>${escape(String(fields.bedrooms))} BR</span>
         </div>`);
 
+    const chip = sourceChip(item.source);
     const sourceBadge = item.source
-        ? `<span class="shrink-0 bg-surface-container text-on-surface-variant font-label-sm px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold">${escape(item.source)}</span>`
+        ? `<span class="shrink-0 font-label-sm px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold" style="background:${chip.bg};color:${chip.text}">${escape(item.source)}</span>`
         : '';
     const priceBadge = fields.price
         ? `<span class="bg-tertiary text-white font-label-md text-label-md px-3 py-1.5 rounded-full shadow-sm">$${escape(String(fields.price))}/mo</span>`

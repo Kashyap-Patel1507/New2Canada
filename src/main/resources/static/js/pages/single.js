@@ -85,6 +85,7 @@ provSel.addEventListener('change', () => {
 });
 citySel.addEventListener('change', runApartments);
 clearBtn.addEventListener('click', () => {
+    aptQ.value = '';
     provSel.value = '';
     fillSelect(citySel, [], 'Select a province first', '');
     citySel.disabled = true;
@@ -187,7 +188,7 @@ async function runAutocomplete(term) {
         const data = await api.get('/api/autocomplete?q=' + encodeURIComponent(term) + '&limit=15');
         const words = data.suggestions || [];
         acResults.innerHTML = words.length
-            ? words.map(w => `<li class="flex items-center gap-2 py-1.5 px-3 rounded-lg hover:bg-surface-container cursor-pointer ac-suggest"><span class="material-symbols-outlined text-outline text-[18px]">location_on</span><span>${escapeHtml(w)}</span></li>`).join('')
+            ? words.map(w => `<li class="flex items-center gap-2 py-1.5 px-3 rounded-lg hover:bg-surface-container cursor-pointer ac-suggest"><span>${escapeHtml(w)}</span></li>`).join('')
             : `<li class="text-on-surface-variant text-body-sm">No completions yet — the live crawl is still warming up.</li>`;
         [...acResults.querySelectorAll('.ac-suggest')].forEach(li => li.onclick = () => {
             const w = li.querySelector('span:last-child').textContent;
@@ -322,7 +323,7 @@ function attachAutocompleteDropdown(input, dropdown, onPick) {
                 const words = data.suggestions || [];
                 if (!words.length) { dropdown.style.display = 'none'; return; }
                 dropdown.innerHTML = `<div class="py-2">` + words.map(w =>
-                    `<div class="ac-item"><span class="material-symbols-outlined text-outline text-sm">location_on</span><span>${escapeHtml(w)}</span></div>`).join('') + `</div>`;
+                    `<div class="ac-item"><span>${escapeHtml(w)}</span></div>`).join('') + `</div>`;
                 dropdown.style.display = 'block';
                 [...dropdown.querySelectorAll('.ac-item')].forEach(el => el.onclick = () => {
                     dropdown.style.display = 'none';
