@@ -86,7 +86,7 @@ public class ApiHandler implements HttpHandler {
 
         List<SearchResult> hits = engine.search(type, query, city, province, uid);
         List<Map<String, Object>> out = new ArrayList<>();
-        for (SearchResult r : hits.subList(0, Math.min(50, hits.size()))) {
+        for (SearchResult r : hits) {   // return every match, not just the top 50
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", r.getId());
             row.put("type", r.getType());
@@ -157,7 +157,7 @@ public class ApiHandler implements HttpHandler {
         String type     = q.getOrDefault("type", "apartments");
         String city     = q.getOrDefault("city", "");
         String province = q.getOrDefault("province", "");
-        List<SearchResult> hits = engine.topByType(type, 50, city, province);
+        List<SearchResult> hits = engine.topByType(type, Integer.MAX_VALUE, city, province);
         List<Map<String, Object>> out = new ArrayList<>();
         for (SearchResult r : hits) {
             Map<String, Object> row = new LinkedHashMap<>();

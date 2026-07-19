@@ -201,21 +201,30 @@ public class SearchEngine {
         return ranked;
     }
 
-    /** Top picks by type with optional facet filters. */
+    /**
+     * Top picks by type with optional facet filters. Ranks every matching
+     * document by the query-less global importance score ({@link
+     * PageRanker#rankAll()}), sorts, then takes the top {@code limit} — the
+     * same ranker the query path uses, just without a query filter.
+     */
     public synchronized List<SearchResult> topByType(String type, int limit,
                                                      String cityFilter, String provinceFilter) {
         InvertedIndex idx = indexes.get(type);
-        if (idx == null) return new ArrayList<>();
-        List<SearchResult> out = new ArrayList<>();
-        for (SearchResult sr : docs.values()) {
-            if (!type.equals(sr.getType())) continue;
-            if (!fieldMatches(sr, "city", cityFilter))         continue;
-            if (!fieldMatches(sr, "province", provinceFilter)) continue;
-            sr.setScore(1.0 + Math.random() * 0.001);
-            out.add(sr);
-            if (out.size() >= limit) break;
+        PageRanker rank   = rankers.get(type);
+        if (idx == null || rank == null) return new ArrayList<>();
+
+        Map<String, Double> scores = rank.rankAll();
+        List<SearchResult> hits = new ArrayList<>();
+        for (Map.Entry<String, Double> e : scores.entrySet()) {
+            SearchResult doc = docs.get(e.getKey());
+            if (doc == null || !type.equals(doc.getType()))    continue;
+            if (!fieldMatches(doc, "city", cityFilter))         continue;
+            if (!fieldMatches(doc, "province", provinceFilter)) continue;
+            doc.setScore(e.getValue());
+            hits.add(doc);
         }
-        return ResultSorter.sortDesc(out);
+        List<SearchResult> ranked = ResultSorter.sortDesc(hits);
+        return ranked.size() > limit ? new ArrayList<>(ranked.subList(0, limit)) : ranked;
     }
 
     private static boolean fieldMatches(SearchResult sr, String field, String wanted) {

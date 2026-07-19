@@ -83,6 +83,9 @@ public class InvertedIndex {
         return result == null ? new HashSet<>() : result;
     }
 
+    /** Snapshot of every indexed term — used by the query-less global ranking. */
+    public Set<String> terms() { return new HashSet<>(index.keySet()); }
+
     public int totalTerms()     { return index.size(); }
     public int totalDocuments() { return docIds.size(); }
 }

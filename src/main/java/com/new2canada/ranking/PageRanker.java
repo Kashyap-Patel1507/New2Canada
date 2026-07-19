@@ -55,13 +55,29 @@ public class PageRanker {
     /** Returns a map of docId → score for the given query. Empty if no hits. */
     public Map<String, Double> rank(String rawQuery) {
         List<String> tokens = TextNormalizer.tokenize(rawQuery);
+        if (tokens.isEmpty()) return new HashMap<>();
+        return smooth(tfidf(tokens), tokens);
+    }
+
+    /**
+     * Query-less <b>global importance</b> ranking, used by the "Top picks"
+     * view. Every document is scored by the sum of its terms' TF·IDF weights —
+     * a content-rich document, or one holding rarer terms, ranks higher, which
+     * is exactly "rank pages by importance (more occurrences → higher rank)".
+     * The same PageRank-style smoothing pass then runs over the whole term set.
+     *
+     * <p>It's the identical two-pass ranker as {@link #rank(String)}, just
+     * seeded from <i>all</i> terms instead of a query's terms.
+     */
+    public Map<String, Double> rankAll() {
+        return smooth(tfidf(index.terms()), index.terms());
+    }
+
+    /** Pass 1 — TF·IDF over the given terms. */
+    private Map<String, Double> tfidf(Iterable<String> terms) {
         Map<String, Double> scores = new HashMap<>();
-        if (tokens.isEmpty()) return scores;
-
         int totalDocs = Math.max(1, index.totalDocuments());
-
-        // -------- pass 1: TF·IDF --------
-        for (String t : tokens) {
+        for (String t : terms) {
             List<InvertedIndex.Posting> postings = index.postings(t);
             if (postings.isEmpty()) continue;
             double idf = Math.log(1.0 + (double) totalDocs / postings.size());
@@ -70,11 +86,16 @@ public class PageRanker {
                 scores.merge(p.docId, tf * idf, Double::sum);
             }
         }
+        return scores;
+    }
 
-        // -------- pass 2+: PageRank-style smoothing --------
-        // Each doc absorbs a damped share of its neighbours' scores via the
-        // shared-term edges in the inverted index. Simple, but enough to
-        // make popular co-occurring docs rise.
+    /**
+     * Pass 2+ — PageRank-style smoothing. Each doc absorbs a damped share of
+     * its neighbours' scores via the shared-term edges in the inverted index,
+     * walking the given terms. Simple, but enough to make popular co-occurring
+     * docs rise.
+     */
+    private Map<String, Double> smooth(Map<String, Double> scores, Iterable<String> terms) {
         double damping = 0.15;
         for (int it = 1; it < iterations; it++) {
             final Map<String, Double> current = scores;
@@ -82,7 +103,7 @@ public class PageRanker {
             for (Map.Entry<String, Double> e : current.entrySet()) {
                 next.merge(e.getKey(), e.getValue() * (1 - damping), Double::sum);
             }
-            for (String t : tokens) {
+            for (String t : terms) {
                 List<InvertedIndex.Posting> postings = index.postings(t);
                 double sumOthers = postings.stream()
                         .mapToDouble(p -> current.getOrDefault(p.docId, 0.0)).sum();

@@ -129,13 +129,17 @@ async function runApartmentSearch(query) {
             };
         }
         renderAptCount(data.results.length, query);
-        aptResults.innerHTML = data.results.length
-            ? data.results.map(renderResult).join('')
-            : `<div class="empty-card md:col-span-2 lg:col-span-3"><h3>No matches</h3><p>Try a broader term or clear filters.</p></div>`;
+        if (data.results.length) {
+            showResults(data.results);
+        } else {
+            aptResults.innerHTML = `<div class="empty-card md:col-span-2 lg:col-span-3"><h3>No matches</h3><p>Try a broader term or clear filters.</p></div>`;
+            aptPager.innerHTML = '';
+        }
         loadHistory();   // the server just recorded this query — reflect it now
         loadStats();     // bump "Searches served" without a page reload
     } catch (e) {
         aptResults.innerHTML = `<div class="empty-card md:col-span-2 lg:col-span-3">Error: ${escapeHtml(e.message)}</div>`;
+        aptPager.innerHTML = '';
     }
 }
 
@@ -151,12 +155,65 @@ async function runTopPicks() {
             aptResults.innerHTML = active
                 ? `<div class="empty-card md:col-span-2 lg:col-span-3">No apartments match the current filters.</div>`
                 : `<div class="empty-card md:col-span-2 lg:col-span-3"><h3>Still indexing…</h3><p>The crawler hasn't finished its first pass. Refresh in a few seconds.</p></div>`;
+            aptPager.innerHTML = '';
             return;
         }
-        aptResults.innerHTML = data.top.map(renderResult).join('');
+        showResults(data.top);
     } catch (e) {
         aptResults.innerHTML = `<div class="empty-card md:col-span-2 lg:col-span-3">Error: ${escapeHtml(e.message)}</div>`;
+        aptPager.innerHTML = '';
     }
+}
+
+/* ---- Pagination: 9 cards per page, shared by search + top picks ---- */
+const aptPager = document.getElementById('aptPager');
+const PAGE_SIZE = 9;
+let pagedResults = [];
+let pagedPage = 1;
+
+function showResults(list) {
+    pagedResults = list || [];
+    pagedPage = 1;
+    renderPage();
+}
+
+function renderPage() {
+    const total = pagedResults.length;
+    const pages = Math.ceil(total / PAGE_SIZE);
+    pagedPage = Math.min(Math.max(1, pagedPage), Math.max(1, pages));
+    const start = (pagedPage - 1) * PAGE_SIZE;
+    aptResults.innerHTML = pagedResults.slice(start, start + PAGE_SIZE).map(renderResult).join('');
+    renderPager(pages);
+}
+
+function renderPager(pages) {
+    if (!aptPager) return;
+    if (pages <= 1) { aptPager.innerHTML = ''; return; }
+    const p = pagedPage;
+    const btn = (label, page, { active = false, disabled = false } = {}) => {
+        const style = active
+            ? 'bg-primary text-on-primary'
+            : 'bg-surface-container text-on-surface hover:bg-surface-container-high';
+        const off = disabled ? 'opacity-40 pointer-events-none' : '';
+        return `<button data-page="${page}" class="pager-btn ${style} ${off} min-w-[2.25rem] h-9 px-3 rounded-full font-label-md text-label-md transition-colors">${label}</button>`;
+    };
+    // Show 1, last, and a small window around the current page (with ellipses).
+    const shown = [...new Set([1, 2, pages - 1, pages, p - 1, p, p + 1])]
+        .filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+    let html = btn('‹ Prev', p - 1, { disabled: p <= 1 });
+    let prev = 0;
+    for (const n of shown) {
+        if (n - prev > 1) html += `<span class="px-1 text-on-surface-variant">…</span>`;
+        html += btn(String(n), n, { active: n === p });
+        prev = n;
+    }
+    html += btn('Next ›', p + 1, { disabled: p >= pages });
+    aptPager.innerHTML = html;
+    [...aptPager.querySelectorAll('.pager-btn')].forEach(b => b.onclick = () => {
+        pagedPage = parseInt(b.dataset.page, 10);
+        renderPage();
+        document.getElementById('apartments').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
 }
 
 function renderAptCount(n, query) {
