@@ -2,7 +2,7 @@
 
 > **COMP 8547 — Advanced Computing Concepts** · Final Project
 
-A Java backend + localhost website that helps new international students arriving in Canada compare apartments, part-time jobs, student bank accounts, and mobile / SIM plans across major Canadian providers (Rentals.ca, Indeed.ca, RBC / Scotia / CIBC, Freedom / Public Mobile).
+A Java backend + localhost website that helps new international students arriving in Canada compare **apartment rentals** across ten major Canadian rental sites — Kijiji, Craigslist, Zumper, PadMapper, ViewIt, 4Rent, RentSeeker, Realtor.ca, Liv.rent, and Rentola.
 
 The project demonstrates every data structure and algorithm required by the course — Trie, HashMap, Priority Queue, Queue, LinkedList, Merge Sort, Edit Distance (Wagner-Fischer), Inverted Index, Regular Expressions, and a PageRank-style ranking pass — wrapped in a cloud-backed web app with Google Sign-In and Firestore persistence.
 
@@ -23,7 +23,7 @@ The project demonstrates every data structure and algorithm required by the cour
 | Pattern extraction | Prices · dates · phone numbers from free text |
 | Auth | Google Sign-In via Firebase Authentication |
 | Persistence | Google Cloud Firestore (cached listings + per-user history) |
-| Web UI | Multi-page localhost site (vanilla HTML/CSS/JS) |
+| Web UI | Single-page localhost site (vanilla HTML/CSS/JS) |
 
 ---
 
@@ -58,7 +58,7 @@ Server started on http://localhost:8080
 
 Open **http://localhost:8080** in Chrome.
 
-> **Note** — on first launch the page will say "no matches yet" for a few seconds while the live crawler hits Rentals.ca / Indeed / the bank sites and builds the index. Refresh after \~15 seconds.
+> **Note** — on first launch the page will say "no matches yet" for a few seconds while the live crawler hits the ten rental sites and builds the index. Refresh after \~15 seconds.
 
 ---
 
@@ -77,8 +77,8 @@ New2Canada/
     ├── java/com/new2canada/
     │   ├── Main.java                  entry point
     │   ├── config/                    AppConfig · RunMode
-    │   ├── crawler/                   WebCrawler + 4 subclasses + PoliteFetcher + Scheduler
-    │   ├── parser/                    HTMLParser · DataExtractor (Jsoup)
+    │   ├── crawler/                   WebCrawler + HousingCrawler + PoliteFetcher + Scheduler
+    │   ├── parser/                    HTMLParser · DataExtractor + rentals/ extractors (Jsoup)
     │   ├── indexing/                  InvertedIndex · WordFrequencyCounter
     │   ├── ranking/                   PageRanker · ResultSorter (merge sort)
     │   ├── spellcheck/                SpellChecker · EditDistance (Wagner-Fischer)
@@ -86,13 +86,13 @@ New2Canada/
     │   ├── regex/                     RegexValidator · PatternFinder
     │   ├── search/                    SearchEngine · SearchTracker
     │   ├── auth/                      User · FirebaseAuthVerifier · AuthMiddleware
-    │   ├── database/                  FirestoreClient + 3 repositories
-    │   ├── models/                    Apartment · Job · BankPlan · MobilePlan · SearchResult
+    │   ├── database/                  FirestoreClient + repositories
+    │   ├── models/                    Apartment · SearchResult
     │   ├── server/                    WebServer · ApiHandler · StaticFileHandler · JsonWriter
     │   └── utils/                     ResourceLoader · TextNormalizer
     └── resources/
         ├── dictionary.txt
-        └── static/                    10 HTML pages + css + js
+        └── static/                    index.html + login.html + css + js
 ```
 
 ---
@@ -101,7 +101,7 @@ New2Canada/
 
 | Method | Path | Auth | Returns |
 |---|---|---|---|
-| GET  | `/api/search?type=apartments|jobs|banks|mobile&q=…` | open | Ranked JSON results |
+| GET  | `/api/search?type=apartments&q=…&city=…&province=…` | open | Ranked JSON results |
 | GET  | `/api/autocomplete?q=…&limit=10` | open | Top-k completions |
 | GET  | `/api/spellcheck?word=…` | open | `{ corrected, suggestions[] }` |
 | POST | `/api/validate` (body: `type`, `value`) | open | `{ valid, message }` |

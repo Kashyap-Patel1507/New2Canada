@@ -36,7 +36,9 @@ Merge sort's worst case is O(N log N) regardless of input; quick sort degrades t
 Simplified two-pass: pass 1 is TF·IDF (`(1 + log TF) · log(1 + N/DF)` summed over query terms). Pass 2 lets each document absorb a damped (0.15) share of its co-listed neighbours' scores — so a document that shares terms with many other already-high-scoring documents gets a small boost. Two iterations is plenty; the maths converges fast on a small corpus.
 
 **10. What does the BFS in your crawler look like?**
-`ArrayDeque<String>` seeded with the configured URLs. Each iteration `poll()`s a URL, asks `PoliteFetcher` to retrieve it, and hands the parsed `Document` to the subclass. We keep a `HashSet<String>` of visited URLs so we never fetch the same page twice. We deliberately *don't* follow links (depth 0) — keeps the load on remote sites tiny while still demonstrating the BFS pattern.
+`ArrayDeque<String>` seeded with the ten configured rental-site URLs. Each iteration `poll()`s a URL, asks `PoliteFetcher` to retrieve it, and hands the parsed `Document` to `HousingCrawler`. We keep a `HashSet<String>` of visited URLs so we never fetch the same page twice. We deliberately *don't* follow links (depth 0) — keeps the load on remote sites tiny while still demonstrating the BFS pattern.
+
+*Follow-up an examiner may ask — how do you handle JavaScript-rendered sites?* `PoliteFetcher` drives a **headless Chrome** through Selenium, not a plain HTTP GET, so client-side-rendered listings (Zumper, PadMapper, 4Rent, …) populate the DOM before we scrape. Each site declares a `readySelector` the fetcher waits for. Two sites needed care: the map-based ones (4Rent, PadMapper) only render once a WebGL map initialises, so we run Chrome with a software-WebGL backend; and realtor.ca sits behind an Imperva bot-wall that blocks automated browsers, so it falls back to the Firestore cache.
 
 ## System design
 
@@ -58,7 +60,7 @@ Keeps the dependency tree small. Our payloads are simple (maps, lists, primitive
 ## Tradeoffs
 
 **16. Are you not just scraping these sites?**
-We crawl publicly-accessible pages politely: identifying User-Agent, 1.5 s per-host throttle, hard 8-second timeout, BFS depth 0 so we don't recurse into thousands of pages. We respect the spirit of robots.txt by limiting ourselves to documented entry points. For a production system we'd request API access from each provider.
+We crawl publicly-accessible pages politely: identifying User-Agent, 1.5 s per-host throttle, a bounded page-load/render wait, BFS depth 0 so we don't recurse into thousands of pages. We respect the spirit of robots.txt by limiting ourselves to documented entry points — and where a site actively refuses automated access (realtor.ca's Imperva wall), we don't try to defeat it; we fall back to cache. For a production system we'd request API access from each provider.
 
 **17. What if the websites change their HTML?**
 The `DataExtractor` will return an empty list for that site on the next crawl. The Firestore cache means we still serve the previous results to the user — so the UI keeps working until we update the selectors.
@@ -86,7 +88,7 @@ The `ScheduledExecutorService` is single-threaded — fine for a personal demo, 
 Write the `(m+1)×(n+1)` grid for "kitten" → "sitting" → final value is 3 (substitute k→s, substitute e→i, insert g).
 
 **23. How big does your dictionary need to be?**
-~150 hand-curated words in `dictionary.txt` covers domain-specific terms ("rentals", "scotiabank", "freedom"). On top of that, the crawler `learn()`s every word it sees, so by the time the user types, the vocabulary is in the thousands.
+~150 hand-curated words in `dictionary.txt` cover domain-specific terms (city names like "toronto"/"winnipeg", "apartment", "bedroom", "kijiji"). On top of that, the crawler `learn()`s every word it sees, so by the time the user types, the vocabulary is in the thousands.
 
 **24. What's the difference between `RegexValidator` and `PatternFinder`?**
 Validator answers "does this whole string match the format?" using `Pattern.matches`. Finder scans a free-form text and yields every substring that matches, using `Pattern.matcher().find()`. Different verbs, same regex library.

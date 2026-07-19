@@ -7,13 +7,13 @@ Target: 14 slides, ~30–40 seconds each. Assumes a 4-person team; speaking part
 ## Slide 1 — Title
 **[Member 1 · ~20s]**
 
-> Hi, we're {names}. We built **New2Canada — an International Student Assistance Search Engine** for COMP 8547. It crawls real Canadian rental, job, bank, and mobile-plan sites, indexes them, and lets a student search and compare them from one localhost website with Google Sign-In and cloud persistence.
+> Hi, we're {names}. We built **New2Canada — an International Student Assistance Search Engine** for COMP 8547. It crawls ten real Canadian apartment-rental sites, indexes them, and lets a student search and compare listings from one localhost website with Google Sign-In and cloud persistence.
 
 ## Slide 2 — Problem
 **[Member 1 · ~40s]**
 
-- New international students must immediately compare apartments, part-time jobs, student bank accounts, and mobile plans.
-- Information is scattered across 8+ sites; language barriers make spell-correction valuable.
+- New international students' hardest first task is finding somewhere to live — comparing apartment rentals across many different sites.
+- Listings are scattered across 10+ rental sites; language barriers make spell-correction valuable.
 - We solve it with one search box, ranked results, and offline-resilient caching.
 
 ## Slide 3 — Architecture diagram
@@ -27,9 +27,9 @@ Show the diagram from `REPORT.md` §3. Talk through the boot order:
 ## Slide 4 — Tech stack
 **[Member 2 · ~30s]**
 
-- Java 17, Maven (one external runtime dep: Jsoup + firebase-admin).
+- Java 17, Maven (Jsoup + Selenium/headless Chrome for crawling, firebase-admin for cloud).
 - JDK built-in `com.sun.net.httpserver.HttpServer` — no Spring needed.
-- Frontend: vanilla HTML/CSS/JS, no framework.
+- Frontend: single-page vanilla HTML/CSS/JS, no framework.
 - Cloud: Firebase Auth (Google Sign-In) + Cloud Firestore.
 
 ## Slide 5 — Data structures
@@ -60,8 +60,8 @@ Highlight one: "We chose a Trie for autocomplete because we get O(L) prefix look
 ## Slide 8 — Live crawler
 **[Member 3 · ~40s]**
 
-- BFS over seed URLs (Rentals.ca, Indeed, RBC/Scotia/CIBC, Freedom/Public).
-- `PoliteFetcher` — User-Agent + 1.5 s per-host throttle + 8 s timeout.
+- BFS over ten seed URLs (Kijiji, Craigslist, Zumper, PadMapper, ViewIt, 4Rent, RentSeeker, Realtor.ca, Liv.rent, Rentola).
+- `PoliteFetcher` — headless Chrome via Selenium + User-Agent + 1.5 s per-host throttle + waits for each site's listings to render.
 - Runs once at boot, then every 6 h via `ScheduledExecutorService`.
 - On success → upserts into Firestore. On failure → the engine keeps serving the previous cache.
 
@@ -81,7 +81,7 @@ Screenshots of: home, apartments search with autocomplete, "Did you mean?" banne
 ## Slide 11 — Live demo (1/2): search + autocomplete + spell-check
 **[Member 4 · ~90s]**
 
-- Open `http://localhost:8080/apartments.html`.
+- Open `http://localhost:8080`.
 - Type "tor" → autocomplete dropdown appears.
 - Submit "torronto" → "Did you mean: toronto?" banner → click it → ranked results.
 - Show `/api/debug` JSON in another tab: Trie size, dictionary size, top-10 by score.
@@ -90,8 +90,8 @@ Screenshots of: home, apartments search with autocomplete, "Did you mean?" banne
 **[Member 4 · ~60s]**
 
 - Click **Sign in with Google** → sign in → `Hi, {name}` appears in the topbar.
-- Run a couple of searches; visit `/history.html` → frequency table + recent searches are now from Firestore.
-- **Resilience demo:** turn WiFi off, click "Refresh crawl" — engine still serves cached listings.
+- Run a couple of searches; the per-user history (via `/api/history`) is now backed by Firestore and survives a restart.
+- **Resilience demo:** turn WiFi off, trigger a re-crawl — engine still serves cached listings.
 
 ## Slide 13 — Course-requirement checklist
 **[Member 4 · ~40s]**

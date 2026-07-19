@@ -16,7 +16,9 @@ You need three things on your machine. Verify each with the command on the right
 |--------------|-------------|------------------|
 | JDK          | 17+         | `java -version`  |
 | Apache Maven | 3.8+        | `mvn -version`   |
-| Chrome (or any modern browser) | — | open it     |
+| Google Chrome | recent stable | open it — **required**, see note below |
+
+> **Chrome is required, not optional.** The crawler drives a **headless Chrome** (via Selenium) so JavaScript-rendered rental sites populate their listings before we scrape. WebDriverManager auto-downloads the matching ChromeDriver on first run, but you must have Chrome itself installed. It's also the browser you'll use to view the UI.
 
 **If you don't have JDK 17 yet:**
 
@@ -38,9 +40,9 @@ brew install maven
 # Linux:   sudo apt install maven
 ```
 
-Everything else (Jsoup, Firebase Admin SDK, SLF4J) is declared in `pom.xml`
-and Maven downloads it automatically on the first build — **you do not
-install Java libraries by hand**.
+Everything else (Jsoup, Selenium, WebDriverManager, Firebase Admin SDK,
+SLF4J) is declared in `pom.xml` and Maven downloads it automatically on the
+first build — **you do not install Java libraries by hand**.
 
 ---
 
@@ -109,8 +111,8 @@ Server started on http://localhost:8080
 ```
 
 Open **<http://localhost:8080>**. Top-right shows a "Sign in with Google"
-button. Sign in with any Google account, then check `/history.html` to
-confirm Firestore is recording your searches.
+button. Sign in with any Google account, run a few searches, then hit
+`/api/history` (or re-open the app) to confirm Firestore is recording them.
 
 If it says **DEMO mode** instead, your `serviceAccountKey.json` is missing
 or named wrong — re-check step 3.
@@ -131,8 +133,8 @@ New2Canada/
     ├── java/com/new2canada/        Java backend
     │   ├── Main.java
     │   ├── config/                 AppConfig (seed URLs), RunMode
-    │   ├── crawler/                Jsoup crawlers + CuratedMobile/Bank seeds
-    │   ├── parser/                 HTMLParser, DataExtractor
+    │   ├── crawler/                WebCrawler, HousingCrawler, PoliteFetcher (Selenium), Scheduler
+    │   ├── parser/                 HTMLParser, DataExtractor, rentals/ (per-site extractors)
     │   ├── indexing/               InvertedIndex, WordFrequencyCounter
     │   ├── ranking/                PageRanker, ResultSorter (merge sort)
     │   ├── spellcheck/             SpellChecker, EditDistance (Wagner-Fischer)
@@ -141,17 +143,16 @@ New2Canada/
     │   ├── search/                 SearchEngine, SearchTracker
     │   ├── auth/                   Firebase ID-token verifier
     │   ├── database/               FirestoreClient + repositories
-    │   ├── models/                 Apartment, Job, BankPlan, MobilePlan,
-    │   │                           Scholarship, SearchResult
+    │   ├── models/                 Apartment, SearchResult
     │   ├── server/                 WebServer, ApiHandler, StaticFileHandler
     │   └── utils/                  ResourceLoader, Location, TextNormalizer
     └── resources/
         ├── dictionary.txt          spell-check seed words
         └── static/                 the website (HTML + CSS + JS)
-            ├── index.html · apartments.html · jobs.html · banks.html ·
-            │ mobile.html · scholarships.html · spellcheck.html · …
-            ├── css/styles.css
-            └── js/                 app.js · auth.js · pages/*.js
+            ├── index.html          single-page app (all features)
+            ├── login.html          Google Sign-In page
+            ├── css/                styles.css · stitch.css
+            └── js/                 app.js · auth.js · pages/single.js
 ```
 
 ---
@@ -162,11 +163,13 @@ You don't install these by hand. They live in `pom.xml`:
 
 | Library                              | Version | Purpose                                                          |
 |--------------------------------------|---------|------------------------------------------------------------------|
-| `org.jsoup:jsoup`                    | 1.17.2  | Live HTML scraping (CSS-selector parsing of crawled pages)       |
+| `org.jsoup:jsoup`                    | 1.17.2  | HTML parsing (CSS-selector extraction of rendered pages)         |
+| `org.seleniumhq.selenium:selenium-java` | 4.18.1 | Drives headless Chrome so JS-rendered listings populate         |
+| `io.github.bonigarcia:webdrivermanager` | 5.7.0 | Auto-downloads the ChromeDriver matching the installed Chrome    |
 | `com.google.firebase:firebase-admin` | 9.2.0   | Verifies Google ID tokens · talks to Firestore from Java         |
 | `org.slf4j:slf4j-simple`             | 2.0.13  | Logging backend required transitively by firebase-admin          |
 
-The fat JAR `target/new2canada.jar` bundles all of the above (≈50 MB).
+The fat JAR `target/new2canada.jar` bundles all of the above (≈90 MB).
 
 ---
 

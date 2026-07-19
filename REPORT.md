@@ -8,16 +8,13 @@
 
 ## 1. Introduction
 
-Every year tens of thousands of international students arrive in Canada and immediately need to make four practical decisions:
+Every year tens of thousands of international students arrive in Canada and immediately face the hardest first decision: **where will I live?** Finding and comparing apartment rentals means visiting dozens of different sites, each with its own layout, filters, and quirks.
 
-1. Where will I live? (apartment / shared room)
-2. How will I pay for it? (part-time job)
-3. Where will I bank? (student chequing account)
-4. How will I stay connected? (mobile / SIM plan)
+Rental listings are scattered across many sites — Kijiji, Craigslist, Zumper, PadMapper, ViewIt, 4Rent, RentSeeker, Realtor.ca, Liv.rent, Rentola — and comparing them is tedious. The language barrier makes spell-correction and autocomplete genuinely useful.
 
-Information is scattered across many sites — Rentals.ca, Indeed, every major bank's website, every mobile carrier's plans page. Comparing them is tedious and the language barrier makes spell-correction and autocomplete genuinely useful.
+**New2Canada** is a single localhost web app that crawls these ten rental sources into one place, indexes them, and lets a student search and compare apartments with the polish of a modern search engine: instant autocomplete, "Did you mean…?" spell correction, ranked results, Google Sign-In, and a per-user search history.
 
-**New2Canada** is a single localhost web app that crawls these sources, indexes them, and lets a student search and compare them with the polish of a modern search engine: instant autocomplete, "Did you mean…?" spell correction, ranked results, Google Sign-In, and a per-user search history.
+> **Scope note.** The project is deliberately focused on the **apartments** category so the full crawl → parse → index → rank → serve pipeline can be built well across ten real sites. Every mandatory course feature is demonstrated end-to-end through this one category. (9 of the 10 sites crawl live; realtor.ca currently serves an Imperva bot-block to automated browsers and falls back to cache.)
 
 ## 2. Objectives
 
@@ -27,7 +24,7 @@ Information is scattered across many sites — Rentals.ca, Indeed, every major b
 | 2 | Build a working, original web crawler | `crawler/` package, live Jsoup scrape |
 | 3 | Provide intelligent search assistance (spell-check, autocomplete) | `spellcheck/`, `autocomplete/` |
 | 4 | Use page-ranking with iterative refinement | `ranking/PageRanker.java` |
-| 5 | Make the system usable from the browser | Multi-page UI on `localhost:8080` |
+| 5 | Make the system usable from the browser | Single-page UI on `localhost:8080` |
 | 6 | Add authentication and cloud persistence | Firebase Auth + Cloud Firestore |
 | 7 | Stay resilient under network failures | Live → Firestore-cache fallback |
 
@@ -52,12 +49,12 @@ HttpServer  ──►  ApiHandler  ──►  AuthMiddleware  ─→  FirebaseAu
                        ▼  rebuild()                  refresh()
                   CrawlScheduler  ◄──  ScheduledExecutorService
                        │
-            ┌──────────┼─────────┐
-            ▼          ▼         ▼
-       HousingCrawler  JobCrawler  ... (BFS Queue + PoliteFetcher)
-            │
-            ▼  Jsoup live fetch
-       rentals.ca · indeed.ca · rbc.com · …
+                       ▼
+       HousingCrawler  (BFS Queue + PoliteFetcher, one seed per site)
+                       │
+                       ▼  Jsoup live fetch (headless Chrome via Selenium)
+       kijiji · craigslist · zumper · padmapper · viewit ·
+       4rent · rentseeker · realtor · liv.rent · rentola
                        │ writes
                        ▼
                   Firestore (listings/, users/, searches/{uid}/queries/)
@@ -100,15 +97,17 @@ Boot sequence (`Main.main`):
 ## 6. Feature explanations
 
 ### 6.1 Web crawler
-`crawler/WebCrawler.java` defines an abstract BFS engine. Each subclass (`HousingCrawler`, `JobCrawler`, `BankCrawler`, `MobileCrawler`) provides:
+`crawler/WebCrawler.java` defines an abstract BFS engine. Its concrete subclass `HousingCrawler` provides:
 
-- a list of **seed URLs** read from `AppConfig`,
-- a `handle(Document)` callback that parses the page and writes typed POJOs to the `SearchEngine`.
+- a list of **seed URLs** read from `AppConfig` (one per rental site),
+- a `handle(Document)` callback that parses the page and writes `Apartment` POJOs to the `SearchEngine`.
 
-`PoliteFetcher` adds a User-Agent, a 1.5 s per-host delay, and an 8-second timeout — so a stalled remote site never blocks an HTTP handler thread.
+Dispatch to the ten site-specific parsers is handled by `parser/rentals/RentalExtractorRegistry` (strategy pattern) — each site has its own `RentalExtractor` that knows that site's DOM.
+
+`PoliteFetcher` drives a headless Chrome (Selenium) so JavaScript-rendered listings populate, adds a descriptive User-Agent, a 1.5 s per-host delay, and waits for each site's listings to render before scraping — so a stalled or empty remote page never blocks the crawl.
 
 ### 6.2 HTML parser
-`parser/HTMLParser` is a thin Jsoup wrapper. `parser/DataExtractor` then does the messy real-world work: it tries several CSS selectors, falls back to regex via `PatternFinder` for prices, and infers fields like `city`, `bedrooms`, and `dataGb` from heuristics. If a target site changes its HTML structure the extractor simply returns an empty list — the Firestore cache picks up the slack.
+`parser/HTMLParser` is a thin Jsoup wrapper. `parser/DataExtractor` delegates to the per-site extractors in `parser/rentals/`, which do the messy real-world work: each tries that site's CSS selectors, falls back to regex via `PatternFinder` for prices, and infers fields like `city`, `bedrooms`, and `address` from heuristics. If a target site changes its HTML structure the extractor simply returns an empty list — the Firestore cache picks up the slack.
 
 ### 6.3 Spell checking
 `spellcheck/EditDistance` is a textbook Wagner-Fischer implementation. `spellcheck/SpellChecker` loads `dictionary.txt` into a `HashSet`, augments it with words harvested at crawl time, and on misspelt input returns the top-k candidates within edit distance ≤ 2, ordered by (distance, then corpus frequency).
