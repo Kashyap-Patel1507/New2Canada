@@ -7,14 +7,15 @@ import com.google.cloud.firestore.WriteResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
  * Appends each authenticated user's queries to
- * {@code searches/{uid}/queries/{autoId}} so they can see their history on
- * /history.html across server restarts.
+ * {@code searches/{uid}/queries/{autoId}} so they can see their search history
+ * in the app's History section across server restarts.
  */
 public class SearchHistoryRepository {
 
@@ -38,6 +39,40 @@ public class SearchHistoryRepository {
         } catch (ExecutionException e) {
             System.err.println("SearchHistoryRepository.record: " + e.getMessage());
         }
+    }
+
+    /**
+     * Aggregates the user's stored queries into a {@code term -> times-searched}
+     * map, scanning at most {@code cap} of their most-recent queries. Ordered
+     * most-searched first. Reads straight from Firestore so the counts persist
+     * across restarts and stay consistent with {@link #recent}.
+     */
+    public Map<String, Integer> frequencies(String uid, int cap) {
+        Map<String, Integer> counts = new HashMap<>();
+        if (uid == null || !FirestoreClient.isInitialised()) return counts;
+        try {
+            ApiFuture<com.google.cloud.firestore.QuerySnapshot> f = FirestoreClient.get()
+                    .collection(ROOT).document(uid)
+                    .collection(SUB)
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .limit(cap)
+                    .get();
+            for (QueryDocumentSnapshot d : f.get().getDocuments()) {
+                Object q = d.get("q");
+                if (q == null) continue;
+                counts.merge(q.toString(), 1, Integer::sum);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            System.err.println("SearchHistoryRepository.frequencies: " + e.getMessage());
+        }
+        // Return most-searched first.
+        Map<String, Integer> sorted = new LinkedHashMap<>();
+        counts.entrySet().stream()
+                .sorted((a, b) -> b.getValue() - a.getValue())
+                .forEach(e -> sorted.put(e.getKey(), e.getValue()));
+        return sorted;
     }
 
     /** Returns the user's most-recent N queries, newest first. */

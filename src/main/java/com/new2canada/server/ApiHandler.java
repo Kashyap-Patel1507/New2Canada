@@ -190,11 +190,16 @@ public class ApiHandler implements HttpHandler {
         if (u == null) { json(ex, 401, Map.of("error", "sign in to view history")); return; }
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("uid", u.uid());
-        body.put("frequencies", engine.localTracker().frequencies());
+        body.put("demoMode", auth.isDemo());
         List<Map<String, Object>> recent;
         if (!auth.isDemo() && historyRepo != null) {
+            // FULL mode: frequencies + recent both come from Firestore, so they
+            // are per-user, persistent across restarts, and consistent.
+            body.put("frequencies", historyRepo.frequencies(u.uid(), 500));
             recent = historyRepo.recent(u.uid(), 25);
         } else {
+            // DEMO mode: no Firestore, so serve the in-memory tracker.
+            body.put("frequencies", engine.localTracker().frequencies());
             recent = new ArrayList<>();
             for (var entry : engine.localTracker().recent()) {
                 recent.add(Map.of(

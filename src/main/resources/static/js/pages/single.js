@@ -8,9 +8,10 @@
 const TYPE = 'apartments';
 
 /* =========================================================================
- * Live stats
+ * Live stats — refreshed on load and after every search so "Searches served"
+ * (and the index/trie/dictionary sizes) stay current without a page reload.
  * ====================================================================== */
-(async () => {
+async function loadStats() {
     try {
         const s = await fetch('/api/debug').then(r => r.json());
         setText('statDocs', s.totalDocs);
@@ -18,7 +19,8 @@ const TYPE = 'apartments';
         setText('statDict', s.dictionarySize);
         setText('statQueries', s.totalQueries);
     } catch (e) { /* warming up */ }
-})();
+}
+loadStats();
 function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
 
 /* =========================================================================
@@ -130,6 +132,8 @@ async function runApartmentSearch(query) {
         aptResults.innerHTML = data.results.length
             ? data.results.map(renderResult).join('')
             : `<div class="empty-card md:col-span-2 lg:col-span-3"><h3>No matches</h3><p>Try a broader term or clear filters.</p></div>`;
+        loadHistory();   // the server just recorded this query — reflect it now
+        loadStats();     // bump "Searches served" without a page reload
     } catch (e) {
         aptResults.innerHTML = `<div class="empty-card md:col-span-2 lg:col-span-3">Error: ${escapeHtml(e.message)}</div>`;
     }
@@ -338,9 +342,66 @@ function attachAutocompleteDropdown(input, dropdown, onPick) {
 }
 
 /* =========================================================================
+ * Search history — Firestore-backed in FULL mode (needs sign-in), in-memory
+ * in DEMO mode. Refreshed after every search so it updates instantly.
+ * ====================================================================== */
+const historyOut = document.getElementById('historyOut');
+
+function fmtTime(ts) {
+    const d = new Date(Number(ts));
+    if (!ts || isNaN(d.getTime())) return '';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' +
+           d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
+async function loadHistory() {
+    if (!historyOut) return;
+    try {
+        const data = await api.get('/api/history');
+        const terms  = Object.entries(data.frequencies || {}).sort((a, b) => b[1] - a[1]);
+        const recent = data.recent || [];
+
+        if (!terms.length && !recent.length) {
+            historyOut.innerHTML = `<p class="text-on-surface-variant text-body-sm">No searches yet — run a search above and it will show up here.</p>`;
+            return;
+        }
+
+        const freqRows = terms.map(([term, count]) => `
+            <div class="flex items-center justify-between gap-3 py-1.5 border-b border-outline-variant/30 last:border-0">
+                <span class="text-on-surface truncate">${escapeHtml(term)}</span>
+                <span class="shrink-0 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-2.5 py-0.5 rounded-full">${count}×</span>
+            </div>`).join('') || `<p class="text-on-surface-variant text-body-sm">Nothing yet.</p>`;
+
+        const recentRows = recent.map(r => `
+            <div class="flex items-center justify-between gap-3 py-1.5 border-b border-outline-variant/30 last:border-0">
+                <span class="text-on-surface truncate">${escapeHtml(r.q || '')}</span>
+                <span class="shrink-0 text-on-surface-variant text-body-sm">${fmtTime(r.timestamp)}</span>
+            </div>`).join('') || `<p class="text-on-surface-variant text-body-sm">Nothing yet.</p>`;
+
+        historyOut.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+                <div>
+                    <h3 class="font-label-md text-label-md text-on-surface mb-2">Most-searched terms <span class="text-on-surface-variant">(${terms.length})</span></h3>
+                    <div class="max-h-[22rem] overflow-y-auto pr-2">${freqRows}</div>
+                </div>
+                <div>
+                    <h3 class="font-label-md text-label-md text-on-surface mb-2">Recent searches <span class="text-on-surface-variant">(${recent.length})</span></h3>
+                    <div class="max-h-[22rem] overflow-y-auto pr-2">${recentRows}</div>
+                </div>
+            </div>`;
+    } catch (e) {
+        // FULL mode returns 401 ("Unauthorized") until the user signs in.
+        historyOut.innerHTML = /unauth|401/i.test(e.message)
+            ? `<p class="text-on-surface-variant text-body-sm">Sign in with Google (top right) to see your search history.</p>`
+            : `<p class="text-on-surface-variant text-body-sm">Couldn't load history right now.</p>`;
+    }
+}
+
+/* =========================================================================
  * Boot
  * ====================================================================== */
 (async () => {
     await loadFacets();
     runTopPicks();   // show something before the first search
+    loadHistory();
 })();
